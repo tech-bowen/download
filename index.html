@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bowen 综合播放器</title>
+    <!-- CSS 样式 -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="password"] {
+            padding: 10px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bowen 综合播放器</h1>
+        <!-- 密码表单 -->
+        <form id="passwordForm" onsubmit="return checkPassword()">
+            <label for="password">请输入密码：</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">进入</button>
+        </form>
+
+        <!-- 音乐播放器 -->
+        <audio id="audioPlayer" controls style="width: 100%; display: none;">
+            您的浏览器不支持音频播放。
+        </audio>
+
+        <!-- 视频播放器 -->
+        <video id="videoPlayer" controls style="width: 100%; display: none;">
+            您的浏览器不支持视频播放。
+        </video>
+
+        <!-- 下载文件列表 -->
+        <ul id="fileList" style="list-style-type: none; padding: 0; text-align: left;"></ul>
+
+        <!-- 发送邮件按钮 -->
+        <button onclick="sendEmail()">发送邮件</button>
+
+        <!-- 前往博客按钮 -->
+        <button onclick="visitBlog()">前往博客</button>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 检查密码
+        function checkPassword() {
+            var password = document.getElementById("password").value;
+            // 在这里设置您的密码
+            if (password === "your_password_here") {
+                showContent();
+                return false; // 防止表单提交
+            } else {
+                alert("密码不正确，请重新输入！");
+                return false;
+            }
+        }
+
+        // 显示内容（文件列表和播放器）
+        function showContent() {
+            var fileList = document.getElementById("fileList");
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
+            // 模拟读取文件夹内容
+            var files = [
+                { name: "音乐文件1.mp3", url: "path_to_your_music_file_1.mp3" },
+                { name: "音乐文件2.mp3", url: "path_to_your_music_file_2.mp3" },
+                { name: "视频文件.mp4", url: "path_to_your_video_file.mp4" }
+                // 添加更多文件和文件夹
+            ];
+
+            // 创建文件列表项并添加到列表中
+            files.forEach(function(file) {
+                var li = document.createElement("li");
+                var link = document.createElement("a");
+                link.textContent = file.name;
+                link.href = file.url;
+                link.setAttribute("download", "");
+                li.appendChild(link);
+                fileList.appendChild(li);
+            });
+
+            // 显示音乐和视频播放器
+            audioPlayer.style.display = "block";
+            videoPlayer.style.display = "block";
+        }
+
+        // 发送邮件功能
+        function sendEmail() {
+            window.location.href = "mailto:admin@tech-bowen.com";
+        }
+
+        // 访问博客功能
+        function visitBlog() {
+            window.open("https://blog.tech-bowen.com", "_blank");
+        }
+    </script>
+</body>
+</html>

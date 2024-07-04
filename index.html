@@ -67,7 +67,9 @@
         </video>
 
         <!-- 下载文件列表 -->
-        <ul id="fileList" style="list-style-type: none; padding: 0; text-align: left;"></ul>
+        <ul id="fileList" style="list-style-type: none; padding: 0; text-align: left;">
+            <!-- 文件列表项会自动生成 -->
+        </ul>
 
         <!-- 发送邮件按钮 -->
         <button onclick="sendEmail()">发送邮件</button>
@@ -94,14 +96,12 @@
         // 显示内容（文件列表和播放器）
         function showContent() {
             var fileList = document.getElementById("fileList");
-            var audioPlayer = document.getElementById("audioPlayer");
-            var videoPlayer = document.getElementById("videoPlayer");
 
             // 模拟读取文件夹内容
             var files = [
-                { name: "音乐文件1.mp3", url: "path_to_your_music_file_1.mp3" },
-                { name: "音乐文件2.mp3", url: "path_to_your_music_file_2.mp3" },
-                { name: "视频文件.mp4", url: "path_to_your_video_file.mp4" }
+                { name: "音乐文件1.mp3", url: "path_to_your_music_file_1.mp3", type: "audio" },
+                { name: "音乐文件2.mp3", url: "path_to_your_music_file_2.mp3", type: "audio" },
+                { name: "视频文件.mp4", url: "path_to_your_video_file.mp4", type: "video" }
                 // 添加更多文件和文件夹
             ];
 
@@ -110,15 +110,32 @@
                 var li = document.createElement("li");
                 var link = document.createElement("a");
                 link.textContent = file.name;
-                link.href = file.url;
-                link.setAttribute("download", "");
+                link.href = "#"; // 使用 # 号作为占位符
+                link.onclick = function() {
+                    playFile(file);
+                };
                 li.appendChild(link);
                 fileList.appendChild(li);
             });
+        }
 
-            // 显示音乐和视频播放器
-            audioPlayer.style.display = "block";
-            videoPlayer.style.display = "block";
+        // 根据文件类型播放
+        function playFile(file) {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
+            // 根据文件类型选择播放器
+            if (file.type === "audio") {
+                audioPlayer.src = file.url;
+                audioPlayer.style.display = "block";
+                videoPlayer.style.display = "none";
+                audioPlayer.play();
+            } else if (file.type === "video") {
+                videoPlayer.src = file.url;
+                videoPlayer.style.display = "block";
+                audioPlayer.style.display = "none";
+                videoPlayer.play();
+            }
         }
 
         // 发送邮件功能

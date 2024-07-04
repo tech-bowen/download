@@ -44,6 +44,40 @@
         button:hover {
             background-color: #0056b3;
         }
+        .modal {
+            display: none; /* 默认隐藏弹窗 */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4); /* 半透明黑色遮罩 */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -55,6 +89,17 @@
             <input type="password" id="password" name="password" required>
             <button type="submit">进入</button>
         </form>
+
+        <!-- 弹窗 -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>用户协议</h2>
+                <p>访客您好，请阅读《Bowen 综合播放器》用户协议后方可继续访问。</p>
+                <button onclick="viewAgreement()">查看协议</button>
+                <button id="agreeButton" disabled>我已阅读</button>
+            </div>
+        </div>
 
         <!-- 音乐播放器 -->
         <audio id="audioPlayer" controls style="width: 100%; display: none;">
@@ -80,16 +125,53 @@
 
     <!-- JavaScript -->
     <script>
+        // 弹窗显示
+        function showModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "block";
+        }
+
+        // 弹窗关闭
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+        }
+
         // 检查密码
         function checkPassword() {
             var password = document.getElementById("password").value;
             // 在这里设置您的密码
             if (password === "123456") {
+                clearCache();
                 showContent();
                 return false; // 防止表单提交
             } else {
                 alert("密码不正确，请重新输入！");
                 return false;
+            }
+        }
+
+        // 清除缓存
+        function clearCache() {
+            // 使用时间戳来使浏览器强制加载新文件
+            var timeStamp = new Date().getTime();
+            var links = document.getElementsByTagName("link");
+            var scripts = document.getElementsByTagName("script");
+
+            // 替换CSS链接
+            for (var i = 0; i < links.length; i++) {
+                var link = links[i];
+                if (link.href) {
+                    link.href = link.href + "?v=" + timeStamp;
+                }
+            }
+
+            // 替换JavaScript脚本
+            for (var i = 0; i < scripts.length; i++) {
+                var script = scripts[i];
+                if (script.src) {
+                    script.src = script.src + "?v=" + timeStamp;
+                }
             }
         }
 
@@ -100,8 +182,8 @@
             // 模拟读取文件夹内容
             var files = [
                 { name: "Fool for you.mp3", url: "https://download.tech-bowen.com/Fool for you.mp3", type: "audio" },
-                { name: "error.mp3", url: "path_to_your_music_file_2.mp3", type: "audio" },
-                { name: "error.mp4", url: "path_to_your_video_file.mp4", type: "video" }
+                { name: "音乐文件2.mp3", url: "https://example.com/path_to_your_music_folder/music2.mp3", type: "audio" },
+                { name: "视频文件.mp4", url: "https://example.com/path_to_your_video_folder/video.mp4", type: "video" }
                 // 添加更多文件和文件夹
             ];
 
@@ -147,6 +229,21 @@
         function visitBlog() {
             window.open("https://blog.tech-bowen.com", "_blank");
         }
+
+        // 查看协议功能（打开弹窗）
+        function viewAgreement() {
+            showModal();
+            // 在此可以添加协议内容的加载或其他操作
+        }
+
+        // 确认阅读协议功能（激活按钮）
+        function agreeTerms() {
+            var agreeButton = document.getElementById("agreeButton");
+            agreeButton.disabled = false;
+        }
+
+        // 页面加载时清除缓存
+        clearCache();
     </script>
 </body>
 </html>

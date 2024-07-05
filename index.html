@@ -62,7 +62,6 @@
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
-            max-width: 500px; /* 最大宽度 */
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.2);
             position: relative;
@@ -82,22 +81,6 @@
         #agreeButton:disabled {
             background-color: #ccc;
             cursor: not-allowed;
-        }
-        @media (max-width: 768px) {
-            .modal-content {
-                width: 90%;
-                margin-top: 30%;
-            }
-        }
-        @media (max-width: 480px) {
-            .modal-content {
-                width: 95%;
-                margin-top: 40%;
-            }
-            button {
-                width: 100%;
-                box-sizing: border-box;
-            }
         }
     </style>
 </head>
@@ -155,13 +138,14 @@
             }, 5000); // 等待5秒后启用“我已阅读”按钮
         }
 
-        // 关闭弹窗
+        // 弹窗关闭
         function closeModal() {
             var modal = document.getElementById("myModal");
             modal.style.display = "none";
+            document.getElementById("contentContainer").style.display = "block";
         }
 
-        // 查看用户协议
+        // 查看协议
         function viewAgreement() {
             window.open("https://blog.tech-bowen.com/2024/07/bowen.html", "_blank");
         }
@@ -169,13 +153,10 @@
         // 检查密码
         function checkPassword() {
             var password = document.getElementById("password").value;
+            // 在这里设置您的密码
             if (password === "123456") {
                 clearCache();
-                document.getElementById("passwordForm").style.display = "none";
-                document.getElementById("contentContainer").style.display = "block";
-                setTimeout(function() {
-                    closeModal();
-                }, 3000); // 3秒后关闭弹窗
+                showContent();
                 return false; // 防止表单提交
             } else {
                 alert("密码不正确，请重新输入！");
@@ -185,10 +166,12 @@
 
         // 清除缓存
         function clearCache() {
+            // 使用时间戳来使浏览器强制加载新文件
             var timeStamp = new Date().getTime();
             var links = document.getElementsByTagName("link");
             var scripts = document.getElementsByTagName("script");
 
+            // 替换CSS链接
             for (var i = 0; i < links.length; i++) {
                 var link = links[i];
                 if (link.href) {
@@ -196,6 +179,7 @@
                 }
             }
 
+            // 替换JavaScript脚本
             for (var i = 0; i < scripts.length; i++) {
                 var script = scripts[i];
                 if (script.src) {
@@ -235,6 +219,7 @@
             var audioPlayer = document.getElementById("audioPlayer");
             var videoPlayer = document.getElementById("videoPlayer");
 
+            // 根据文件类型选择播放器
             if (file.type === "audio") {
                 audioPlayer.src = file.url;
                 audioPlayer.style.display = "block";
@@ -258,11 +243,10 @@
             window.open("https://blog.tech-bowen.com", "_blank");
         }
 
-        // 页面加载完成时执行
+        // 页面加载时显示弹窗
         window.onload = function() {
             showModal();
-            showContent();
-        }
+        };
     </script>
 </body>
 </html>

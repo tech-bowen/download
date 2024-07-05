@@ -45,8 +45,7 @@
             background-color: #0056b3;
         }
         .modal {
-            display: block;
-            /* 默认显示弹窗 */
+            display: none; /* 默认隐藏弹窗 */
             position: fixed;
             z-index: 1;
             left: 0;
@@ -163,7 +162,7 @@
             <h2>用户协议</h2>
             <p>访客您好，请阅读《Bowen 综合播放器》用户协议后方可访问，阅读完毕后按下下方的"我已阅读"</p>
             <button onclick="viewAgreement()">查看协议</button>
-            <button id="agreeButton" onclick="closeModal()" disabled>我已阅读</button>
+            <button id="agreeButton" onclick="agreeAndClose()">我已阅读</button>
         </div>
     </div>
 
@@ -173,10 +172,6 @@
         function showModal() {
             var modal = document.getElementById("myModal");
             modal.style.display = "block";
-            setTimeout(function() {
-                var agreeButton = document.getElementById("agreeButton");
-                agreeButton.disabled = false;
-            }, 5000); // 等待5秒后启用“我已阅读”按钮
         }
 
         // 关闭弹窗
@@ -190,16 +185,23 @@
             window.open("https://blog.tech-bowen.com/2024/07/bowen.html", "_blank");
         }
 
+        // 点击“我已阅读”按钮
+        function agreeAndClose() {
+            var agreeButton = document.getElementById("agreeButton");
+            agreeButton.disabled = true; // 禁用按钮
+            setTimeout(function() {
+                closeModal(); // 3秒后关闭弹窗
+            }, 3000);
+        }
+
         // 检查密码
         function checkPassword() {
             var password = document.getElementById("password").value;
-            if (password === "your_password_here") {
+            if (password === "123456") {
                 clearCache();
                 document.getElementById("passwordForm").style.display = "none";
                 document.getElementById("contentContainer").style.display = "block";
-                setTimeout(function() {
-                    closeModal();
-                }, 3000); // 3秒后关闭弹窗
+                showModal(); // 显示弹窗
                 return false; // 防止表单提交
             } else {
                 alert("密码不正确，请重新输入！");
@@ -282,11 +284,8 @@
             window.open("https://blog.tech-bowen.com", "_blank");
         }
 
-        // 页面加载完成时执行
-        window.onload = function() {
-            showModal();
-            showContent();
-        }
+        // 页面加载时清除缓存
+        clearCache();
     </script>
 </body>
 </html>

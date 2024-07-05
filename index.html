@@ -101,13 +101,9 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            font-size: 14px;
-            color: #777;
-            text-align: left;
         }
         #currentTime span {
             display: block;
-            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -202,137 +198,113 @@
             { name: "带我去找夜生活.mp3", url: "https://download.tech-bowen.com/带我去找夜生活.mp3", type: "audio" },
             { name: "Past Chicken.mp3", url: "https://download.tech-bowen.com/Past Chicken.mp3", type: "audio" },
             { name: "给你一瓶魔法药水.mp3", url: "https://download.tech-bowen.com/给你一瓶魔法药水.mp3", type: "audio" },
-            { name: "Princess Crown.mp3", url: "https://download.tech-bowen.com/Princess Crown.mp3", type: "audio" },
-            { name: "病毒.mp4", url: "https://download.tech-bowen.com/病毒.mp4", type: "video" }
+            { name: "Letting go.mp3", url: "https://download.tech-bowen.com/Letting go.mp3", type: "audio" }
         ];
 
-        // 当前播放模式
-        var currentPlayMode = "single"; // 默认为单次播放
+        // 记录是否同意协议的状态
+        var agreed = false;
 
-        // 初始播放列表
-        var audioList = mediaFiles.filter(file => file.type === "audio");
-        var videoList = mediaFiles.filter(file => file.type === "video");
+        // 当页面加载时显示弹窗
+        window.onload = function () {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "block";
+        };
 
-        // 按需加载的元素
-        const passwordForm = document.getElementById('passwordForm');
-        const contentContainer = document.getElementById('contentContainer');
-        const modal = document.getElementById('myModal');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const videoPlayer = document.getElementById('videoPlayer');
-        const audioListElement = document.getElementById('audioList');
-        const videoListElement = document.getElementById('videoList');
-        const utcTimeElement = document.getElementById('utcTime');
-        const localTimeElement = document.getElementById('localTime');
-        const currentTimeContainer = document.getElementById('currentTime');
-
-        // 显示当前时间
-        function showCurrentTime() {
-            var now = new Date();
-            var utcTime = now.toUTCString();
-            var localTime = now.toLocaleString();
-            utcTimeElement.textContent = "UTC 时间：" + utcTime;
-            localTimeElement.textContent = "本地时间：" + localTime;
+        // 查看协议按钮点击事件
+        function viewAgreement() {
+            alert("请仔细阅读用户协议内容。");
+            var agreeButton = document.getElementById("agreeButton");
+            agreeButton.disabled = false; // 可以点击同意按钮
         }
 
-        // 切换主题
-        function switchTheme() {
-            var themeSelect = document.getElementById('theme');
-            var theme = themeSelect.value;
-            if (theme === 'dark') {
-                document.documentElement.style.setProperty('--background-color', '#333');
-                document.documentElement.style.setProperty('--text-color', '#fff');
-            } else {
-                document.documentElement.style.setProperty('--background-color', '#fff');
-                document.documentElement.style.setProperty('--text-color', '#333');
-            }
+        // 同意并关闭按钮点击事件
+        function agreeAndClose() {
+            agreed = true;
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none"; // 关闭弹窗
+
+            // 解锁页面内容
+            var contentContainer = document.getElementById("contentContainer");
+            contentContainer.style.display = "block"; // 显示内容
         }
 
-        // 检查密码
+        // 检查密码并解锁内容
         function checkPassword() {
-            var password = document.getElementById('password').value;
-            if (password === 'bowen') {
-                modal.style.display = "none";
-                contentContainer.style.display = "block";
-                passwordForm.reset();
-                showCurrentTime(); // 显示时间
-                loadMediaLists(); // 加载媒体列表
-                return false; // 防止表单提交刷新页面
+            var password = document.getElementById("password").value;
+            if (password === "Bowen 996") {
+                // 密码正确，解锁页面内容
+                var contentContainer = document.getElementById("contentContainer");
+                contentContainer.style.display = "block"; // 显示内容
+
+                // 显示搜索框和播放模式选择
+                var searchBox = document.getElementById("searchBox");
+                var playModeContainer = document.getElementById("playModeContainer");
+                searchBox.style.display = "block";
+                playModeContainer.style.display = "block";
+
+                // 显示音频和视频列表
+                displayMediaFiles();
             } else {
-                alert('密码错误，请重新输入！');
-                return false;
+                alert("密码错误，请重新输入。");
             }
+            return false; // 阻止表单提交
         }
 
-        // 加载媒体列表
-        function loadMediaLists() {
-            // 加载音频列表
-            audioListElement.innerHTML = "";
-            audioList.forEach(function (audio) {
-                var li = document.createElement('li');
-                li.textContent = audio.name;
-                li.setAttribute('onclick', `playMedia('${audio.url}', '${audio.type}')`);
-                audioListElement.appendChild(li);
-            });
+        // 显示音频和视频列表
+        function displayMediaFiles() {
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
 
-            // 加载视频列表
-            videoListElement.innerHTML = "";
-            videoList.forEach(function (video) {
-                var li = document.createElement('li');
-                li.textContent = video.name;
-                li.setAttribute('onclick', `playMedia('${video.url}', '${video.type}')`);
-                videoListElement.appendChild(li);
-            });
-        }
+            mediaFiles.forEach(function (file) {
+                var listItem = document.createElement("li");
+                var link = document.createElement("a");
+                link.href = file.url;
+                link.textContent = file.name;
+                listItem.appendChild(link);
 
-        // 播放媒体
-        function playMedia(url, type) {
-            if (type === 'audio') {
-                audioPlayer.style.display = 'block';
-                audioPlayer.src = url;
-                videoPlayer.pause(); // 停止视频播放
-                videoPlayer.style.display = 'none';
-            } else if (type === 'video') {
-                videoPlayer.style.display = 'block';
-                videoPlayer.src = url;
-                audioPlayer.pause(); // 停止音频播放
-                audioPlayer.style.display = 'none';
-            }
+                if (file.type === "audio") {
+                    audioList.appendChild(listItem);
+                } else if (file.type === "video") {
+                    videoList.appendChild(listItem);
+                }
+            });
         }
 
         // 发送邮件功能
         function sendEmail() {
-            window.open('mailto:admin@tech-bowen.com');
+            window.location.href = "mailto:admin@tech-bowen.com";
         }
 
-        // 前往博客按钮
+        // 前往博客功能
         function visitBlog() {
-            window.open('https://blog.tech-bowen.com');
+            window.open("https://blog.tech-bowen.com");
         }
 
-        // 查看用户协议
-        function viewAgreement() {
-            alert('《Bowen 综合播放器》用户协议：\n\n1. 访问本站视为您已阅读并同意所有条款。\n2. 您必须在合法的服务器上发布服务。\n3. 请勿尝试抓取文本内容。\n\n联系：admin@tech-bowen.com');
+        // 切换主题功能
+        function switchTheme() {
+            var theme = document.getElementById("theme").value;
+            var root = document.documentElement;
+
+            if (theme === "dark") {
+                root.style.setProperty("--background-color", "#333");
+                root.style.setProperty("--text-color", "#fff");
+            } else {
+                root.style.setProperty("--background-color", "#fff");
+                root.style.setProperty("--text-color", "#333");
+            }
         }
 
-        // 同意并关闭弹窗
-        function agreeAndClose() {
-            modal.style.display = "none";
-            contentContainer.style.display = "block";
-            showCurrentTime(); // 显示时间
-            loadMediaLists(); // 加载媒体列表
+        // 播放模式选择功能
+        function setPlayMode() {
+            var playMode = document.getElementById("playMode").value;
+            var audioPlayer = document.getElementById("audioPlayer");
+
+            if (playMode === "single") {
+                audioPlayer.removeAttribute("loop");
+            } else {
+                audioPlayer.setAttribute("loop", true);
+            }
         }
-
-        // 页面加载时显示弹窗
-        window.onload = function () {
-            modal.style.display = "block";
-            showCurrentTime(); // 显示时间
-        };
-
-        // 定时更新当前时间
-        setInterval(showCurrentTime, 1000);
-
-        // 页面加载后自动加载主题样式
-        switchTheme();
     </script>
 </body>
 </html>

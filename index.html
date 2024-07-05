@@ -122,7 +122,7 @@
             <h2>用户协议</h2>
             <p>访客您好，请阅读《Bowen 综合播放器》用户协议后方可访问，阅读完毕后按下下方的"我已阅读"</p>
             <button onclick="viewAgreement()">查看协议</button>
-            <button id="agreeButton" onclick="closeModal()" disabled>我已阅读</button>
+            <button id="agreeButton" onclick="agreeAndClose()" disabled>我已阅读</button>
         </div>
     </div>
 
@@ -157,6 +157,11 @@
             if (password === "123456") {
                 clearCache();
                 showContent();
+                setTimeout(function() {
+                    var passwordForm = document.getElementById("passwordForm");
+                    passwordForm.style.display = "none"; // 隐藏密码表单
+                    document.getElementById("contentContainer").style.display = "block"; // 显示内容容器
+                }, 5000); // 等待5秒后隐藏密码表单
                 return false; // 防止表单提交
             } else {
                 alert("密码不正确，请重新输入！");
@@ -241,6 +246,11 @@
         // 访问博客功能
         function visitBlog() {
             window.open("https://blog.tech-bowen.com", "_blank");
+        }
+
+        // 点击“我已阅读”按钮后关闭弹窗
+        function agreeAndClose() {
+            closeModal();
         }
 
         // 页面加载时显示弹窗

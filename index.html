@@ -26,7 +26,7 @@
         input[type="password"],
         input[type="text"] {
             padding: 10px;
-            width: 200px;
+            width: 250px; /* 增加输入框的宽度 */
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
@@ -110,6 +110,15 @@
         <!-- 搜索框 -->
         <input type="text" id="searchBox" placeholder="搜索歌曲..." oninput="filterSongs()" style="display: none;">
 
+        <!-- 播放模式选择 -->
+        <div id="playModeContainer" style="display: none;">
+            <label for="playMode">选择播放模式：</label>
+            <select id="playMode" onchange="setPlayMode()">
+                <option value="single">单次播放</option>
+                <option value="loop">循环播放</option>
+            </select>
+        </div>
+
         <!-- 音乐播放器 -->
         <audio id="audioPlayer" controls style="width: 100%; display: none;">
             您的浏览器不支持音频播放。
@@ -123,11 +132,15 @@
         <!-- 文件分类列表 -->
         <div class="category" id="audioCategory">
             <h2>音频文件</h2>
-            <ul id="audioList"></ul>
+            <ul id="audioList">
+                <li id="audioPlaceholder">请输入密码后解锁本列表</li>
+            </ul>
         </div>
         <div class="category" id="videoCategory">
             <h2>视频文件</h2>
-            <ul id="videoList"></ul>
+            <ul id="videoList">
+                <li id="videoPlaceholder">请输入密码后解锁本列表</li>
+            </ul>
         </div>
 
         <!-- 发送邮件按钮 -->
@@ -183,6 +196,8 @@
                     passwordForm.style.display = "none"; // 隐藏密码表单
                     var searchBox = document.getElementById("searchBox");
                     searchBox.style.display = "block"; // 显示搜索框
+                    var playModeContainer = document.getElementById("playModeContainer");
+                    playModeContainer.style.display = "block"; // 显示播放模式选择
                 }, 5000); // 等待5秒后隐藏密码表单
                 return false; // 防止表单提交
             } else {
@@ -228,25 +243,26 @@
             var files = [
                 { name: "Fool for you.mp3", url: "https://download.tech-bowen.com/Fool for you.mp3", type: "audio" },
                 { name: "Ferrari.mp3", url: "https://download.tech-bowen.com/Ferrari.mp3", type: "audio" },
-                { name: "call of duty league1.mp4", url: "https://download.tech-bowen.com/call of duty league1 .mp4", type: "video" },
-                { name: "Ferrari.mp3", url: "https://download.tech-bowen.com/Ferrari.mp3", type: "audio" },
-                { name: "Ferrari.mp3", url: "https://download.tech-bowen.com/Ferrari.mp3", type: "audio" },
-                { name: "Ferrari.mp3", url: "https://download.tech-bowen.com/Ferrari.mp3", type: "audio" }
-                // 添加更多文件和文件夹
+                { name: "Evergreen.mp3", url: "https://download.tech-bowen.com/Evergreen.mp3", type: "audio" },
+                { name: "蔡健雅 - 红色高跟鞋.mp3", url: "https://download.tech-bowen.com/蔡健雅 - 红色高跟鞋.mp3", type: "audio" },
+                { name: "Kendji Girac - Conquistador.mp3", url: "https://download.tech-bowen.com/Kendji Girac - Conquistador.mp3", type: "audio" },
+                { name: "Note.mp4", url: "https://download.tech-bowen.com/Note.mp4", type: "video" },
+                { name: "音乐2.mp4", url: "https://download.tech-bowen.com/音乐2.mp4", type: "video" },
+                { name: "Vanessa Paradis - La Seine (From _A Monster in Paris_).mp4", url: "https://download.tech-bowen.com/Vanessa Paradis - La Seine (From _A Monster in Paris_).mp4", type: "video" }
             ];
 
-            // 分类并创建文件列表项
+            // 根据文件类型显示在不同的列表中
             files.forEach(function(file) {
                 var li = document.createElement("li");
-                var link = document.createElement("a");
-                link.textContent = file.name;
-                link.href = "#"; // 使用 # 号作为占位符
-                link.onclick = function() {
-                    playFile(file);
+                li.textContent = file.name;
+                li.style.cursor = "pointer";
+                li.onclick = function() {
+                    if (file.type === "audio") {
+                        playAudio(file.url);
+                    } else if (file.type === "video") {
+                        playVideo(file.url);
+                    }
                 };
-                li.appendChild(link);
-
-                // 根据文件类型添加到对应的列表
                 if (file.type === "audio") {
                     audioList.appendChild(li);
                 } else if (file.type === "video") {
@@ -255,76 +271,92 @@
             });
         }
 
-        // 根据文件类型播放
-        function playFile(file) {
+        // 播放音频
+        function playAudio(url) {
             var audioPlayer = document.getElementById("audioPlayer");
             var videoPlayer = document.getElementById("videoPlayer");
-
-            // 根据文件类型选择播放器
-            if (file.type === "audio") {
-                audioPlayer.src = file.url;
-                audioPlayer.style.display = "block";
-                videoPlayer.style.display = "none";
-                audioPlayer.play();
-            } else if (file.type === "video") {
-                videoPlayer.src = file.url;
-                videoPlayer.style.display = "block";
-                audioPlayer.style.display = "none";
-                videoPlayer.play();
-            }
+            videoPlayer.style.display = "none"; // 隐藏视频播放器
+            audioPlayer.style.display = "block"; // 显示音频播放器
+            audioPlayer.src = url;
+            audioPlayer.play();
         }
 
-        // 发送邮件功能
+        // 播放视频
+        function playVideo(url) {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+            audioPlayer.style.display = "none"; // 隐藏音频播放器
+            videoPlayer.style.display = "block"; // 显示视频播放器
+            videoPlayer.src = url;
+            videoPlayer.play();
+        }
+
+        // 发送邮件
         function sendEmail() {
             window.location.href = "mailto:admin@tech-bowen.com";
         }
 
-        // 访问博客功能
+        // 访问博客
         function visitBlog() {
-            window.open("https://blog.tech-bowen.com", "_blank");
+            window.location.href = "https://blog.tech-bowen.com";
         }
 
-        // 点击“我已阅读”按钮后关闭弹窗
+        // 过滤歌曲列表
+        function filterSongs() {
+            var searchBox = document.getElementById("searchBox");
+            var filter = searchBox.value.toLowerCase();
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
+            var audioItems = audioList.getElementsByTagName("li");
+            var videoItems = videoList.getElementsByTagName("li");
+
+            // 过滤音频文件
+            for (var i = 0; i < audioItems.length; i++) {
+                var item = audioItems[i];
+                var text = item.textContent || item.innerText;
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            }
+
+            // 过滤视频文件
+            for (var i = 0; i < videoItems.length; i++) {
+                var item = videoItems[i];
+                var text = item.textContent || item.innerText;
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            }
+        }
+
+        // 设置播放模式
+        function setPlayMode() {
+            var playMode = document.getElementById("playMode").value;
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
+            if (playMode === "loop") {
+                audioPlayer.loop = true;
+                videoPlayer.loop = true;
+            } else {
+                audioPlayer.loop = false;
+                videoPlayer.loop = false;
+            }
+        }
+
+        // 同意协议并关闭弹窗
         function agreeAndClose() {
             closeModal();
         }
 
-        // 页面加载时显示弹窗
+        // 初始化页面时显示弹窗
         window.onload = function() {
             showModal();
         };
-
-        // 搜索歌曲功能
-        function filterSongs() {
-            var input = document.getElementById("searchBox");
-            var filter = input.value.toLowerCase();
-            var audioList = document.getElementById("audioList");
-            var videoList = document.getElementById("videoList");
-            var audioLi = audioList.getElementsByTagName("li");
-            var videoLi = videoList.getElementsByTagName("li");
-
-            // 遍历所有音频文件列表项并隐藏那些不匹配搜索条件的项
-            for (var i = 0; i < audioLi.length; i++) {
-                var a = audioLi[i].getElementsByTagName("a")[0];
-                var txtValue = a.textContent || a.innerText;
-                if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                    audioLi[i].style.display = "";
-                } else {
-                    audioLi[i].style.display = "none";
-                }
-            }
-
-            // 遍历所有视频文件列表项并隐藏那些不匹配搜索条件的项
-            for (var i = 0; i < videoLi.length; i++) {
-                var a = videoLi[i].getElementsByTagName("a")[0];
-                var txtValue = a.textContent || a.innerText;
-                if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                    videoLi[i].style.display = "";
-                } else {
-                    videoLi[i].style.display = "none";
-                }
-            }
-        }
     </script>
 </body>
 </html>

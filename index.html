@@ -129,6 +129,9 @@
             您的浏览器不支持视频播放。
         </video>
 
+        <!-- 返回按钮 -->
+        <button id="backButton" onclick="showFileLists()" style="display: none;">返回</button>
+
         <!-- 文件分类列表 -->
         <div class="category" id="audioCategory">
             <h2>音频文件</h2>
@@ -254,7 +257,7 @@
                 { name: "Letting go.mp3", url: "https://download.tech-bowen.com/Letting go.mp3", type: "audio" }
             ];
 
-            // 根据文件类型显示在不同的列表中
+            // 根据文件类型添加到对应的列表中
             files.forEach(function(file) {
                 var li = document.createElement("li");
                 li.textContent = file.name;
@@ -266,6 +269,7 @@
                         playVideo(file.url);
                     }
                 };
+
                 if (file.type === "audio") {
                     audioList.appendChild(li);
                 } else if (file.type === "video") {
@@ -278,9 +282,12 @@
         function playAudio(url) {
             var audioPlayer = document.getElementById("audioPlayer");
             var videoPlayer = document.getElementById("videoPlayer");
-            videoPlayer.style.display = "none"; // 隐藏视频播放器
-            audioPlayer.style.display = "block"; // 显示音频播放器
+            var backButton = document.getElementById("backButton");
+
             audioPlayer.src = url;
+            audioPlayer.style.display = "block";
+            videoPlayer.style.display = "none";
+            backButton.style.display = "block"; // 显示返回按钮
             audioPlayer.play();
         }
 
@@ -288,20 +295,36 @@
         function playVideo(url) {
             var audioPlayer = document.getElementById("audioPlayer");
             var videoPlayer = document.getElementById("videoPlayer");
-            audioPlayer.style.display = "none"; // 隐藏音频播放器
-            videoPlayer.style.display = "block"; // 显示视频播放器
+            var backButton = document.getElementById("backButton");
+
             videoPlayer.src = url;
+            videoPlayer.style.display = "block";
+            audioPlayer.style.display = "none";
+            backButton.style.display = "block"; // 显示返回按钮
             videoPlayer.play();
         }
 
-        // 发送邮件
-        function sendEmail() {
-            window.location.href = "mailto:admin@tech-bowen.com";
+        // 显示文件列表并隐藏播放器
+        function showFileLists() {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+            var backButton = document.getElementById("backButton");
+
+            audioPlayer.style.display = "none";
+            videoPlayer.style.display = "none";
+            backButton.style.display = "none";
         }
 
-        // 访问博客
-        function visitBlog() {
-            window.location.href = "https://blog.tech-bowen.com";
+        // 设置播放模式
+        function setPlayMode() {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var playMode = document.getElementById("playMode").value;
+
+            if (playMode === "loop") {
+                audioPlayer.loop = true;
+            } else {
+                audioPlayer.loop = false;
+            }
         }
 
         // 过滤歌曲列表
@@ -313,50 +336,37 @@
             var audioItems = audioList.getElementsByTagName("li");
             var videoItems = videoList.getElementsByTagName("li");
 
-            // 过滤音频文件
+            // 过滤音频文件列表
             for (var i = 0; i < audioItems.length; i++) {
                 var item = audioItems[i];
                 var text = item.textContent || item.innerText;
-                if (text.toLowerCase().indexOf(filter) > -1) {
-                    item.style.display = "";
-                } else {
-                    item.style.display = "none";
-                }
+                item.style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
             }
 
-            // 过滤视频文件
+            // 过滤视频文件列表
             for (var i = 0; i < videoItems.length; i++) {
                 var item = videoItems[i];
                 var text = item.textContent || item.innerText;
-                if (text.toLowerCase().indexOf(filter) > -1) {
-                    item.style.display = "";
-                } else {
-                    item.style.display = "none";
-                }
+                item.style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
             }
         }
 
-        // 设置播放模式
-        function setPlayMode() {
-            var playMode = document.getElementById("playMode").value;
-            var audioPlayer = document.getElementById("audioPlayer");
-            var videoPlayer = document.getElementById("videoPlayer");
-
-            if (playMode === "loop") {
-                audioPlayer.loop = true;
-                videoPlayer.loop = true;
-            } else {
-                audioPlayer.loop = false;
-                videoPlayer.loop = false;
-            }
+        // 发送邮件
+        function sendEmail() {
+            window.location.href = "mailto:admin@tech-bowen.com";
         }
 
-        // 同意协议并关闭弹窗
+        // 前往博客
+        function visitBlog() {
+            window.location.href = "https://blog.tech-bowen.com";
+        }
+
+        // 同意并关闭弹窗
         function agreeAndClose() {
             closeModal();
         }
 
-        // 初始化页面时显示弹窗
+        // 页面加载时显示弹窗
         window.onload = function() {
             showModal();
         };

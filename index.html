@@ -201,110 +201,150 @@
             { name: "Letting go.mp3", url: "https://download.tech-bowen.com/Letting go.mp3", type: "audio" }
         ];
 
-        // 记录是否同意协议的状态
-        var agreed = false;
+        // 将页面元素缓存在变量中
+        var modal = document.getElementById('myModal');
+        var contentContainer = document.getElementById('contentContainer');
+        var passwordForm = document.getElementById('passwordForm');
+        var audioPlayer = document.getElementById('audioPlayer');
+        var videoPlayer = document.getElementById('videoPlayer');
+        var audioList = document.getElementById('audioList');
+        var videoList = document.getElementById('videoList');
+        var audioPlaceholder = document.getElementById('audioPlaceholder');
+        var videoPlaceholder = document.getElementById('videoPlaceholder');
+        var agreeButton = document.getElementById('agreeButton');
+        var searchBox = document.getElementById('searchBox');
+        var playModeContainer = document.getElementById('playModeContainer');
 
-        // 当页面加载时显示弹窗
-        window.onload = function () {
-            var modal = document.getElementById("myModal");
-            modal.style.display = "block";
-        };
-
-        // 查看协议按钮点击事件
+        // 弹窗显示用户协议
         function viewAgreement() {
-            alert("请仔细阅读用户协议内容。");
-            var agreeButton = document.getElementById("agreeButton");
-            agreeButton.disabled = false; // 可以点击同意按钮
+            modal.style.display = "block";
         }
 
-        // 同意并关闭按钮点击事件
+        // 用户同意协议并关闭弹窗
         function agreeAndClose() {
-            agreed = true;
-            var modal = document.getElementById("myModal");
-            modal.style.display = "none"; // 关闭弹窗
-
-            // 解锁页面内容
-            var contentContainer = document.getElementById("contentContainer");
-            contentContainer.style.display = "block"; // 显示内容
+            modal.style.display = "none";
+            contentContainer.style.display = "block";
+            passwordForm.style.display = "none";
+            loadMediaFiles();
         }
 
-        // 检查密码并解锁内容
+        // 检查密码
         function checkPassword() {
-            var password = document.getElementById("password").value;
-            if (password === "Bowen 996") {
-                // 密码正确，解锁页面内容
-                var contentContainer = document.getElementById("contentContainer");
-                contentContainer.style.display = "block"; // 显示内容
-
-                // 显示搜索框和播放模式选择
-                var searchBox = document.getElementById("searchBox");
-                var playModeContainer = document.getElementById("playModeContainer");
-                searchBox.style.display = "block";
-                playModeContainer.style.display = "block";
-
-                // 显示音频和视频列表
-                displayMediaFiles();
+            var password = document.getElementById('password').value;
+            // 模拟密码验证，这里假设密码为 12345
+            if (password === "12345") {
+                agreeButton.disabled = false;
+                return false;
             } else {
-                alert("密码错误，请重新输入。");
+                alert("密码错误，请重试。");
+                return false;
             }
-            return false; // 阻止表单提交
         }
 
-        // 显示音频和视频列表
-        function displayMediaFiles() {
-            var audioList = document.getElementById("audioList");
-            var videoList = document.getElementById("videoList");
-
-            mediaFiles.forEach(function (file) {
-                var listItem = document.createElement("li");
-                var link = document.createElement("a");
-                link.href = file.url;
-                link.textContent = file.name;
-                listItem.appendChild(link);
-
-                if (file.type === "audio") {
+        // 加载媒体文件列表
+        function loadMediaFiles() {
+            // 清空列表
+            audioList.innerHTML = '';
+            videoList.innerHTML = '';
+            // 遍历媒体文件数组
+            mediaFiles.forEach(function(file) {
+                var listItem = document.createElement('li');
+                var itemLink = document.createElement('a');
+                itemLink.textContent = file.name;
+                itemLink.href = file.url;
+                itemLink.target = "_blank"; // 在新窗口打开链接
+                listItem.appendChild(itemLink);
+                if (file.type === 'audio') {
                     audioList.appendChild(listItem);
-                } else if (file.type === "video") {
+                } else if (file.type === 'video') {
                     videoList.appendChild(listItem);
                 }
             });
+            // 显示分类列表和搜索框
+            audioPlaceholder.style.display = 'none';
+            videoPlaceholder.style.display = 'none';
+            searchBox.style.display = 'block';
+            playModeContainer.style.display = 'block';
+            audioPlayer.style.display = 'block';
+            videoPlayer.style.display = 'block';
         }
 
-        // 发送邮件功能
+        // 搜索歌曲
+        function filterSongs() {
+            var filter = searchBox.value.toUpperCase();
+            var audioItems = audioList.getElementsByTagName('li');
+            var videoItems = videoList.getElementsByTagName('li');
+            // 遍历音频文件列表
+            for (var i = 0; i < audioItems.length; i++) {
+                var item = audioItems[i].getElementsByTagName('a')[0];
+                if (item.textContent.toUpperCase().indexOf(filter) > -1) {
+                    audioItems[i].style.display = '';
+                } else {
+                    audioItems[i].style.display = 'none';
+                }
+            }
+            // 遍历视频文件列表
+            for (var i = 0; i < videoItems.length; i++) {
+                var item = videoItems[i].getElementsByTagName('a')[0];
+                if (item.textContent.toUpperCase().indexOf(filter) > -1) {
+                    videoItems[i].style.display = '';
+                } else {
+                    videoItems[i].style.display = 'none';
+                }
+            }
+        }
+
+        // 设置播放模式
+        function setPlayMode() {
+            var mode = document.getElementById('playMode').value;
+            if (mode === 'single') {
+                audioPlayer.removeAttribute('loop');
+                audioPlayer.loop = false;
+            } else if (mode === 'loop') {
+                audioPlayer.loop = true;
+            }
+        }
+
+        // 发送邮件按钮功能
         function sendEmail() {
             window.location.href = "mailto:admin@tech-bowen.com";
         }
 
-        // 前往博客功能
+        // 前往博客按钮功能
         function visitBlog() {
-            window.open("https://blog.tech-bowen.com");
+            window.open("https://blog.tech-bowen.com", "_blank");
         }
 
-        // 切换主题功能
+        // 切换主题
         function switchTheme() {
-            var theme = document.getElementById("theme").value;
+            var theme = document.getElementById('theme').value;
             var root = document.documentElement;
-
-            if (theme === "dark") {
-                root.style.setProperty("--background-color", "#333");
-                root.style.setProperty("--text-color", "#fff");
+            if (theme === 'dark') {
+                root.style.setProperty('--background-color', '#222');
+                root.style.setProperty('--text-color', '#fff');
             } else {
-                root.style.setProperty("--background-color", "#fff");
-                root.style.setProperty("--text-color", "#333");
+                root.style.setProperty('--background-color', '#fff');
+                root.style.setProperty('--text-color', '#333');
             }
         }
 
-        // 播放模式选择功能
-        function setPlayMode() {
-            var playMode = document.getElementById("playMode").value;
-            var audioPlayer = document.getElementById("audioPlayer");
-
-            if (playMode === "single") {
-                audioPlayer.removeAttribute("loop");
-            } else {
-                audioPlayer.setAttribute("loop", true);
-            }
+        // 显示当前时间
+        function showTime() {
+            var now = new Date();
+            var utcString = now.toUTCString();
+            var localString = now.toLocaleString();
+            document.getElementById('utcTime').textContent = "UTC 时间：" + utcString;
+            document.getElementById('localTime').textContent = "本地时间：" + localString;
         }
+
+        // 更新时间每秒
+        setInterval(showTime, 1000);
+
+        // 初始化页面
+        window.onload = function() {
+            showTime();
+        };
+
     </script>
 </body>
 </html>

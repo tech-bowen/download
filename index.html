@@ -83,6 +83,18 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+        .category {
+            margin-top: 20px;
+        }
+        .category h2 {
+            text-align: left;
+            font-size: 20px;
+            color: #555;
+        }
+        .category ul {
+            list-style-type: none;
+            padding: 0;
+        }
     </style>
 </head>
 <body>
@@ -108,10 +120,15 @@
             您的浏览器不支持视频播放。
         </video>
 
-        <!-- 下载文件列表 -->
-        <ul id="fileList" style="list-style-type: none; padding: 0; text-align: left;">
-            <!-- 文件列表项会自动生成 -->
-        </ul>
+        <!-- 文件分类列表 -->
+        <div class="category" id="audioCategory">
+            <h2>音频文件</h2>
+            <ul id="audioList"></ul>
+        </div>
+        <div class="category" id="videoCategory">
+            <h2>视频文件</h2>
+            <ul id="videoList"></ul>
+        </div>
 
         <!-- 发送邮件按钮 -->
         <button onclick="sendEmail()">发送邮件</button>
@@ -200,7 +217,12 @@
 
         // 显示内容（文件列表和播放器）
         function showContent() {
-            var fileList = document.getElementById("fileList");
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
+
+            // 清空之前的列表
+            audioList.innerHTML = '';
+            videoList.innerHTML = '';
 
             // 模拟读取文件夹内容
             var files = [
@@ -213,7 +235,7 @@
                 // 添加更多文件和文件夹
             ];
 
-            // 创建文件列表项并添加到列表中
+            // 分类并创建文件列表项
             files.forEach(function(file) {
                 var li = document.createElement("li");
                 var link = document.createElement("a");
@@ -223,7 +245,13 @@
                     playFile(file);
                 };
                 li.appendChild(link);
-                fileList.appendChild(li);
+
+                // 根据文件类型添加到对应的列表
+                if (file.type === "audio") {
+                    audioList.appendChild(li);
+                } else if (file.type === "video") {
+                    videoList.appendChild(li);
+                }
             });
         }
 
@@ -270,17 +298,30 @@
         function filterSongs() {
             var input = document.getElementById("searchBox");
             var filter = input.value.toLowerCase();
-            var ul = document.getElementById("fileList");
-            var li = ul.getElementsByTagName("li");
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
+            var audioLi = audioList.getElementsByTagName("li");
+            var videoLi = videoList.getElementsByTagName("li");
 
-            // 遍历所有文件列表项并隐藏那些不匹配搜索条件的项
-            for (var i = 0; i < li.length; i++) {
-                var a = li[i].getElementsByTagName("a")[0];
+            // 遍历所有音频文件列表项并隐藏那些不匹配搜索条件的项
+            for (var i = 0; i < audioLi.length; i++) {
+                var a = audioLi[i].getElementsByTagName("a")[0];
                 var txtValue = a.textContent || a.innerText;
                 if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                    li[i].style.display = "";
+                    audioLi[i].style.display = "";
                 } else {
-                    li[i].style.display = "none";
+                    audioLi[i].style.display = "none";
+                }
+            }
+
+            // 遍历所有视频文件列表项并隐藏那些不匹配搜索条件的项
+            for (var i = 0; i < videoLi.length; i++) {
+                var a = videoLi[i].getElementsByTagName("a")[0];
+                var txtValue = a.textContent || a.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    videoLi[i].style.display = "";
+                } else {
+                    videoLi[i].style.display = "none";
                 }
             }
         }

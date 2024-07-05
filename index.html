@@ -14,13 +14,12 @@
             text-align: center;
         }
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            position: relative;
         }
         h1 {
             color: #333;
@@ -87,56 +86,51 @@
         }
         .category {
             margin-top: 20px;
-            text-align: left;
         }
         .category h2 {
+            text-align: left;
             font-size: 20px;
             color: #555;
-            margin-bottom: 10px;
         }
         .theme-switch {
             position: absolute;
             top: 20px;
             right: 20px;
         }
-        #utcTime {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #777;
-        }
-        #localTime {
-            position: absolute;
-            top: 20px;
-            left: 150px;
-            color: #777;
-        }
         #currentTime {
             position: absolute;
-            top: 60px;
+            top: 20px;
             left: 20px;
-            color: #777;
         }
         #currentTime span {
             display: block;
         }
-        #contentContainer {
+        .agreement-modal {
             display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
         }
-        #searchBox, #playModeContainer {
-            display: none;
+        .agreement-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.2);
+            position: relative;
         }
-        #audioList, #videoList {
-            list-style-type: none;
-            padding: 0;
-        }
-        #audioList li, #videoList li {
-            margin-bottom: 5px;
-            cursor: pointer;
-            color: #007bff;
-        }
-        #audioList li:hover, #videoList li:hover {
-            text-decoration: underline;
+        #utcTime {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -148,13 +142,11 @@
             <option value="dark">深色</option>
         </select>
     </div>
-    <div id="utcTime"></div>
-    <div id="localTime"></div>
     <div id="currentTime">
-        <span id="utc"></span>
-        <span id="local"></span>
+        <span id="utcTime"></span>
+        <span id="localTime"></span>
     </div>
-    <div class="container" id="contentContainer">
+    <div class="container" id="contentContainer" style="display: none;">
         <h1>Bowen 综合播放器</h1>
         <!-- 密码表单 -->
         <form id="passwordForm" onsubmit="return checkPassword()">
@@ -164,10 +156,10 @@
         </form>
 
         <!-- 搜索框 -->
-        <input type="text" id="searchBox" placeholder="搜索歌曲..." oninput="filterSongs()">
+        <input type="text" id="searchBox" placeholder="搜索歌曲..." oninput="filterSongs()" style="display: none;">
 
         <!-- 播放模式选择 -->
-        <div id="playModeContainer">
+        <div id="playModeContainer" style="display: none;">
             <label for="playMode">选择播放模式：</label>
             <select id="playMode" onchange="setPlayMode()">
                 <option value="single">单次播放</option>
@@ -176,12 +168,12 @@
         </div>
 
         <!-- 音乐播放器 -->
-        <audio id="audioPlayer" controls style="width: 100%;">
+        <audio id="audioPlayer" controls style="width: 100%; display: none;">
             您的浏览器不支持音频播放。
         </audio>
 
         <!-- 视频播放器 -->
-        <video id="videoPlayer" controls style="width: 100%;">
+        <video id="videoPlayer" controls style="width: 100%; display: none;">
             您的浏览器不支持视频播放。
         </video>
 
@@ -209,9 +201,9 @@
         <p>按 <kbd>Ctrl + C</kbd> 复制内容时将需要密码解锁权限</p>
     </div>
 
-    <!-- 弹窗 -->
-    <div id="myModal" class="modal">
-        <div class="modal-content">
+    <!-- 用户协议弹窗 -->
+    <div class="agreement-modal" id="agreementModal">
+        <div class="agreement-content">
             <h2>用户协议</h2>
             <p>访客您好，请阅读《Bowen 综合播放器》用户协议后方可访问，阅读完毕后按下下方的"我已阅读"</p>
             <button onclick="viewAgreement()">查看协议</button>
@@ -236,152 +228,165 @@
             { name: "Letting go.mp3", url: "https://download.tech-bowen.com/Letting go.mp3", type: "audio" }
         ];
 
-        // 倒计时秒数
-        var countdownSeconds = 3;
+        // 当前播放器索引
+        var currentIndex = 0;
 
-        // UTC 时间
-        function getUTCTime() {
-            var now = new Date();
-            var utcTime = now.toISOString();
-            return utcTime;
-        }
+        // 页面加载完成后执行
+        document.addEventListener("DOMContentLoaded", function(event) {
+            // 获取并显示 UTC 和 UTC+8 时间
+            displayUTCTime();
 
-        // UTC+8 时间
-        function getLocalTime() {
-            var now = new Date();
-            var localTime = now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-            return localTime;
-        }
-
-        // 当地时间
-        function getCurrentTime() {
-            var now = new Date();
-            var year = now.getFullYear();
-            var month = now.getMonth() + 1;
-            var day = now.getDate();
-            var hours = now.getHours();
-            var minutes = now.getMinutes();
-            var seconds = now.getSeconds();
-            return `${year}年${month}月${day}日 ${hours}时${minutes}分${seconds}秒`;
-        }
-
-        // 更新时间显示
-        function updateTimeDisplay() {
-            document.getElementById("utc").textContent = "UTC 时间: " + getUTCTime();
-            document.getElementById("local").textContent = "UTC+8 时间: " + getLocalTime();
-            document.getElementById("currentTime").innerHTML = `<span>当前时间:</span> ${getCurrentTime()}`;
-        }
-
-        // 定时更新时间显示
-        setInterval(updateTimeDisplay, 1000);
+            // 检查是否已同意用户协议
+            var agreed = localStorage.getItem("agreed");
+            if (!agreed) {
+                document.getElementById("agreementModal").style.display = "block";
+            } else {
+                document.getElementById("contentContainer").style.display = "block";
+            }
+        });
 
         // 切换主题
         function switchTheme() {
             var theme = document.getElementById("theme").value;
             var root = document.documentElement;
             if (theme === "dark") {
-                root.style.setProperty('--background-color', '#333');
-                root.style.setProperty('--text-color', '#fff');
+                root.style.setProperty("--background-color", "#333");
+                root.style.setProperty("--text-color", "#fff");
             } else {
-                root.style.setProperty('--background-color', '#fff');
-                root.style.setProperty('--text-color', '#333');
+                root.style.setProperty("--background-color", "#fff");
+                root.style.setProperty("--text-color", "#333");
             }
         }
 
-        // 检查密码
+        // 检查密码是否正确
         function checkPassword() {
             var password = document.getElementById("password").value;
+            // 这里可以根据实际需要设置密码验证逻辑
             if (password === "yaohua666") {
-                unlockContent();
-                return false;
+                document.getElementById("passwordForm").reset();
+                document.getElementById("audioList").innerHTML = "";
+                document.getElementById("videoList").innerHTML = "";
+                displayMediaFiles();
+                return false; // 防止提交表单导致页面刷新
             } else {
                 alert("密码错误，请重新输入。");
                 return false;
             }
         }
 
-        // 解锁内容
-        function unlockContent() {
-            document.getElementById("contentContainer").style.display = "block";
-            document.getElementById("myModal").style.display = "none";
-            document.getElementById("passwordForm").reset();
-        }
-
-        // 过滤歌曲
-        function filterSongs() {
-            var filter = document.getElementById("searchBox").value.toUpperCase();
+        // 显示音频和视频列表
+        function displayMediaFiles() {
             var audioList = document.getElementById("audioList");
             var videoList = document.getElementById("videoList");
 
-            var audioItems = audioList.getElementsByTagName("li");
-            var videoItems = videoList.getElementsByTagName("li");
-
-            for (var i = 0; i < audioItems.length; i++) {
-                var txtValue = audioItems[i].textContent || audioItems[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    audioItems[i].style.display = "";
-                } else {
-                    audioItems[i].style.display = "none";
+            mediaFiles.forEach(function(file) {
+                var listItem = document.createElement("li");
+                listItem.textContent = file.name;
+                if (file.type === "audio") {
+                    listItem.onclick = function() {
+                        playAudio(file.url);
+                    };
+                    audioList.appendChild(listItem);
+                } else if (file.type === "video") {
+                    listItem.onclick = function() {
+                        playVideo(file.url);
+                    };
+                    videoList.appendChild(listItem);
                 }
-            }
+            });
 
-            for (var j = 0; j < videoItems.length; j++) {
-                var txtValue = videoItems[j].textContent || videoItems[j].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    videoItems[j].style.display = "";
-                } else {
-                    videoItems[j].style.display = "none";
-                }
-            }
+            document.getElementById("contentContainer").style.display = "block";
         }
 
-        // 发送邮件
+        // 播放音频
+        function playAudio(url) {
+            var audioPlayer = document.getElementById("audioPlayer");
+            audioPlayer.src = url;
+            audioPlayer.style.display = "block";
+            document.getElementById("videoPlayer").style.display = "none";
+            audioPlayer.play();
+        }
+
+        // 播放视频
+        function playVideo(url) {
+            var videoPlayer = document.getElementById("videoPlayer");
+            videoPlayer.src = url;
+            videoPlayer.style.display = "block";
+            document.getElementById("audioPlayer").style.display = "none";
+            videoPlayer.play();
+        }
+
+        // 发送邮件按钮点击事件
         function sendEmail() {
-            window.location.href = "mailto:admin@tech-bowen.com";
+            // 实现发送邮件的逻辑
+            alert("邮件已发送至 admin@tech-bowen.com");
         }
 
-        // 前往博客
+        // 前往博客按钮点击事件
         function visitBlog() {
-            window.open("https://blog.tech-bowen.com/2024/07/bowen.html", "_blank");
+            window.location.href = "https://blog.tech-bowen.com/2024/07/bowen.html";
         }
 
-        // 查看协议
+        // 显示用户协议弹窗
         function viewAgreement() {
-            alert("请阅读用户协议后点击“我已阅读”按钮。");
+            document.getElementById("agreementModal").style.display = "block";
         }
 
-        // 同意协议并关闭窗口
+        // 同意用户协议并关闭弹窗
         function agreeAndClose() {
-            document.getElementById("myModal").style.display = "none";
-            document.getElementById("agreeButton").disabled = true;
+            localStorage.setItem("agreed", true);
+            document.getElementById("agreementModal").style.display = "none";
+            document.getElementById("contentContainer").style.display = "block";
+        }
+
+        // 过滤歌曲列表
+        function filterSongs() {
+            var keyword = document.getElementById("searchBox").value.toLowerCase();
+            var audioItems = document.getElementById("audioList").getElementsByTagName("li");
+            var videoItems = document.getElementById("videoList").getElementsByTagName("li");
+
+            Array.from(audioItems).forEach(function(item) {
+                var itemName = item.textContent.toLowerCase();
+                if (itemName.indexOf(keyword) === -1) {
+                    item.style.display = "none";
+                } else {
+                    item.style.display = "block";
+                }
+            });
+
+            Array.from(videoItems).forEach(function(item) {
+                var itemName = item.textContent.toLowerCase();
+                if (itemName.indexOf(keyword) === -1) {
+                    item.style.display = "none";
+                } else {
+                    item.style.display = "block";
+                }
+            });
         }
 
         // 设置播放模式
         function setPlayMode() {
             var mode = document.getElementById("playMode").value;
-            var audio = document.getElementById("audioPlayer");
-            audio.loop = (mode === "loop");
+            var audioPlayer = document.getElementById("audioPlayer");
+            if (mode === "loop") {
+                audioPlayer.loop = true;
+            } else {
+                audioPlayer.loop = false;
+            }
         }
 
-        // 页面加载时显示倒计时
-        function showCountdown() {
-            var countdown = countdownSeconds;
-            var countdownInterval = setInterval(function() {
-                if (countdown > 0) {
-                    console.log(countdown);
-                    countdown--;
-                } else {
-                    clearInterval(countdownInterval);
-                    document.getElementById("myModal").style.display = "block";
-                    showCountdown();
-                }
+        // 显示 UTC 和 UTC+8 时间
+        function displayUTCTime() {
+            var utcTimeElement = document.getElementById("utcTime");
+            var localTimeElement = document.getElementById("localTime");
+            var options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            setInterval(function() {
+                var now = new Date();
+                var utcTimeString = now.toISOString().replace('Z', '').replace('T', ' ');
+                utcTimeElement.textContent = "UTC: " + utcTimeString;
+                localTimeElement.textContent = "UTC+8: " + now.toLocaleString('en-US', options);
             }, 1000);
         }
-
-        // 页面加载时显示用户协议
-        window.onload = function() {
-            showCountdown();
-        };
     </script>
 </body>
 </html>

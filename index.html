@@ -201,7 +201,7 @@
             { name: "Letting go.mp3", url: "https://download.tech-bowen.com/Letting go.mp3", type: "audio" }
         ];
 
-        // 设置主题
+        // 切换主题
         function switchTheme() {
             var theme = document.getElementById("theme").value;
             var root = document.documentElement;
@@ -234,7 +234,8 @@
                 setTimeout(function() {
                     document.getElementById("searchBox").style.display = "block"; // 显示搜索框
                     document.getElementById("playModeContainer").style.display = "block"; // 显示播放模式选择
-                }, 2000);
+                    document.getElementById("agreeButton").disabled = false; // 启用同意按钮
+                }, 5000); // 5秒后启用按钮
             } else {
                 alert("密码错误！");
             }

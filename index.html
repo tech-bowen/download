@@ -23,7 +23,8 @@
         h1 {
             color: #333;
         }
-        input[type="password"] {
+        input[type="password"],
+        input[type="text"] {
             padding: 10px;
             width: 200px;
             border: 1px solid #ccc;
@@ -94,6 +95,9 @@
             <button type="submit">进入</button>
         </form>
 
+        <!-- 搜索框 -->
+        <input type="text" id="searchBox" placeholder="搜索歌曲..." oninput="filterSongs()" style="display: none;">
+
         <!-- 音乐播放器 -->
         <audio id="audioPlayer" controls style="width: 100%; display: none;">
             您的浏览器不支持音频播放。
@@ -160,7 +164,8 @@
                 setTimeout(function() {
                     var passwordForm = document.getElementById("passwordForm");
                     passwordForm.style.display = "none"; // 隐藏密码表单
-                    document.getElementById("contentContainer").style.display = "block"; // 显示内容容器
+                    var searchBox = document.getElementById("searchBox");
+                    searchBox.style.display = "block"; // 显示搜索框
                 }, 5000); // 等待5秒后隐藏密码表单
                 return false; // 防止表单提交
             } else {
@@ -257,6 +262,25 @@
         window.onload = function() {
             showModal();
         };
+
+        // 搜索歌曲功能
+        function filterSongs() {
+            var input = document.getElementById("searchBox");
+            var filter = input.value.toLowerCase();
+            var ul = document.getElementById("fileList");
+            var li = ul.getElementsByTagName("li");
+
+            // 遍历所有文件列表项并隐藏那些不匹配搜索条件的项
+            for (var i = 0; i < li.length; i++) {
+                var a = li[i].getElementsByTagName("a")[0];
+                var txtValue = a.textContent || a.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    li[i].style.display = "";
+                } else {
+                    li[i].style.display = "none";
+                }
+            }
+        }
     </script>
 </body>
 </html>

@@ -171,16 +171,16 @@
         </video>
 
         <!-- 文件分类列表 -->
-        <div class="category" id="audioCategory">
+        <div class="category" id="audioCategory" style="display: none;">
             <h2>音频文件</h2>
             <ul id="audioList">
-                <li id="audioPlaceholder">输入密码以解锁列表</li>
+                <li id="audioPlaceholder">输入密码以解锁内容</li>
             </ul>
         </div>
-        <div class="category" id="videoCategory">
+        <div class="category" id="videoCategory" style="display: none;">
             <h2>视频文件</h2>
             <ul id="videoList">
-                <li id="videoPlaceholder">输入密码以解锁列表</li>
+                <li id="videoPlaceholder">输入密码以解锁内容</li>
             </ul>
         </div>
 
@@ -246,8 +246,8 @@
 
         // 解锁媒体列表
         function unlockMediaList() {
-            var audioPlaceholder = document.getElementById("audioPlaceholder");
-            var videoPlaceholder = document.getElementById("videoPlaceholder");
+            var audioCategory = document.getElementById("audioCategory");
+            var videoCategory = document.getElementById("videoCategory");
             var audioList = document.getElementById("audioList");
             var videoList = document.getElementById("videoList");
 
@@ -261,13 +261,15 @@
 
                 if (file.type === "audio") {
                     audioList.appendChild(listItem);
+                    audioCategory.style.display = "block";
                 } else if (file.type === "video") {
                     videoList.appendChild(listItem);
+                    videoCategory.style.display = "block";
                 }
             });
 
-            audioPlaceholder.textContent = "选择音频文件开始播放";
-            videoPlaceholder.textContent = "选择视频文件开始播放";
+            document.getElementById("audioPlaceholder").textContent = "选择音频文件开始播放";
+            document.getElementById("videoPlaceholder").textContent = "选择视频文件开始播放";
         }
 
         // 播放媒体文件
@@ -363,7 +365,7 @@
             updateTime();
             showModal(); // 显示用户协议模态框
             setInterval(updateTime, 1000); // 每秒更新时间
-            unlockMediaList(); // 解锁媒体列表
+            //unlockMediaList(); // 解锁媒体列表，移到密码验证通过后再解锁
 
             // 假设使用第三方IP信息服务获取IP信息
             var ipAddress = "192.168.1.1"; // 示例IP地址

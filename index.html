@@ -145,12 +145,12 @@
         </form>
 
         <!-- 音乐播放器 -->
-        <audio id="audioPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('audio')">
+        <audio id="audioPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('audio')" loop>
             您的浏览器不支持音频播放。
         </audio>
 
         <!-- 视频播放器 -->
-        <video id="videoPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('video')">
+        <video id="videoPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('video')" loop>
             您的浏览器不支持视频播放。
         </video>
 
@@ -158,13 +158,13 @@
         <div class="category" id="audioCategory" style="display: none;">
             <h2>音频文件</h2>
             <ul id="audioList">
-                <li id="audioPlaceholder">输入密码以解锁内容</li>
+                <!-- 音频文件将在 JavaScript 中动态添加 -->
             </ul>
         </div>
         <div class="category" id="videoCategory" style="display: none;">
             <h2>视频文件</h2>
             <ul id="videoList">
-                <li id="videoPlaceholder">输入密码以解锁内容</li>
+                <!-- 视频文件将在 JavaScript 中动态添加 -->
             </ul>
         </div>
 
@@ -228,88 +228,114 @@
             var audioList = document.getElementById("audioList");
             var videoList = document.getElementById("videoList");
 
-            // 清空列表
-            audioList.innerHTML = "";
-            videoList.innerHTML = "";
-
             // 构建音频列表
-            mediaFiles.filter(file => file.type === "audio").forEach(audio => {
+            mediaFiles.filter(function(file) {
+                return file.type === "audio";
+            }).forEach(function(audio) {
                 var li = document.createElement("li");
                 li.textContent = audio.name;
-                li.onclick = function() { playMedia(audio.url, 'audio'); };
+                li.onclick = function() {
+                    playMedia(audio.url, 'audio');
+                };
                 audioList.appendChild(li);
             });
 
             // 构建视频列表
-            mediaFiles.filter(file => file.type === "video").forEach(video => {
+            mediaFiles.filter(function(file) {
+                return file.type === "video";
+            }).forEach(function(video) {
                 var li = document.createElement("li");
                 li.textContent = video.name;
-                li.onclick = function() { playMedia(video.url, 'video'); };
+                li.onclick = function() {
+                    playMedia(video.url, 'video');
+                };
                 videoList.appendChild(li);
             });
 
-            // 显示分类
+            // 显示分类列表
             document.getElementById("audioCategory").style.display = "block";
             document.getElementById("videoCategory").style.display = "block";
-
-            // 隐藏密码输入表单
-            document.getElementById("passwordForm").style.display = "none";
         }
 
         // 播放媒体
         function playMedia(url, type) {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
             if (type === 'audio') {
-                var audioPlayer = document.getElementById("audioPlayer");
                 audioPlayer.src = url;
                 audioPlayer.style.display = "block";
-                document.getElementById("videoPlayer").style.display = "none";
+                videoPlayer.style.display = "none";
                 audioPlayer.play();
             } else if (type === 'video') {
-                var videoPlayer = document.getElementById("videoPlayer");
                 videoPlayer.src = url;
                 videoPlayer.style.display = "block";
-                document.getElementById("audioPlayer").style.display = "none";
+                audioPlayer.style.display = "none";
                 videoPlayer.play();
             }
         }
 
-        // 发送邮件
+        // 处理媒体播放结束
+        function handleMediaEnd(type) {
+            if (type === 'audio') {
+                document.getElementById("audioPlayer").currentTime = 0;
+            } else if (type === 'video') {
+                document.getElementById("videoPlayer").currentTime = 0;
+            }
+        }
+
+        // 发送邮件功能
         function sendEmail() {
             window.location.href = "mailto:admin@tech-bowen.com";
         }
 
-        // 前往博客
+        // 前往博客功能
         function visitBlog() {
             window.open("https://blog.tech-bowen.com", "_blank");
         }
 
-        // 获取本地时间和 UTC 时间
-        function updateTime() {
-            var now = new Date();
-            var utcTime = now.toISOString().slice(0, 19).replace("T", " ");
-            var localTime = now.toLocaleString();
-            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
-            document.getElementById("localTime").textContent = "本地时间：" + localTime;
-        }
+        // IP 地址和时间显示
+        function showIPAndTime() {
+            var ipAddress = document.getElementById("ipAddress");
+            var ipLocation = document.getElementById("ipLocation");
+            var utcTime = document.getElementById("utcTime");
+            var localTime = document.getElementById("localTime");
 
-        // 获取 IP 地址和地理位置
-        function fetchIPInfo() {
-            fetch('https://ipapi.co/json/')
+            // 获取当前时间
+            var now = new Date();
+            var utcString = now.toUTCString();
+            var localString = now.toLocaleString();
+
+            // 更新时间显示
+            utcTime.textContent = "UTC 时间：" + utcString;
+            localTime.textContent = "本地时间：" + localString;
+
+            // 获取 IP 地址
+            fetch('https://api64.ipify.org?format=json')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("ipAddress").textContent = data.ip;
-                    document.getElementById("ipLocation").textContent = data.city + ', ' + data.region;
+                    ipAddress.textContent = data.ip;
+
+                    // 根据 IP 获取地理位置信息（示例）
+                    fetch('https://ipapi.co/' + data.ip + '/json/')
+                        .then(response => response.json())
+                        .then(locationData => {
+                            ipLocation.textContent = locationData.city + ', ' + locationData.country_name;
+                        })
+                        .catch(error => {
+                            console.error('获取地理位置信息时出错:', error);
+                        });
                 })
                 .catch(error => {
-                    console.error('获取 IP 地址和地理位置出错:', error);
+                    console.error('获取 IP 地址时出错:', error);
                 });
         }
 
-        // 实时更新时间和 IP 地址信息
-        updateTime();
-        fetchIPInfo();
-        setInterval(updateTime, 1000); // 每秒更新时间
-        setInterval(fetchIPInfo, 60000); // 每分钟更新 IP 地址和地理位置
+        // 页面加载完成后显示 IP 和时间，同时启动定时器每秒更新一次
+        document.addEventListener('DOMContentLoaded', function() {
+            showIPAndTime(); // 初次加载
+            setInterval(showIPAndTime, 1000); // 每秒更新
+        });
     </script>
 </body>
 </html>

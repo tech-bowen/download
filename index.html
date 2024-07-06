@@ -157,12 +157,12 @@
         <input type="text" id="searchBox" placeholder="搜索歌曲..." style="display: none;">
 
         <!-- 音乐播放器 -->
-        <audio id="audioPlayer" controls style="width: 100%; display: none;">
+        <audio id="audioPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('audio')">
             您的浏览器不支持音频播放。
         </audio>
 
         <!-- 视频播放器 -->
-        <video id="videoPlayer" controls style="width: 100%; display: none;">
+        <video id="videoPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('video')">
             您的浏览器不支持视频播放。
         </video>
 
@@ -206,6 +206,9 @@
         // 是否同意协议
         var agreed = false;
 
+        // 当前媒体文件索引
+        var currentMediaIndex = -1;
+
         // 显示模态框
         function showModal() {
             var modal = document.getElementById("modal");
@@ -228,8 +231,8 @@
         function checkPassword() {
             var passwordInput = document.getElementById("password").value;
             if (passwordInput === password) {
-                unlockMedia(); // 解锁媒体
-                return false; // 阻止表单提交
+                unlockMedia();
+                return false;
             } else {
                 alert("密码错误，请重新输入。");
                 return false;
@@ -238,38 +241,82 @@
 
         // 解锁媒体
         function unlockMedia() {
-            document.getElementById("audioPlaceholder").style.display = "none";
-            document.getElementById("videoPlaceholder").style.display = "none";
-
             var audioList = document.getElementById("audioList");
             var videoList = document.getElementById("videoList");
 
-            for (var i = 0; i < mediaFiles.length; i++) {
-                var media = mediaFiles[i];
+            // 清空音频和视频列表的占位符
+            var audioPlaceholder = document.getElementById("audioPlaceholder");
+            var videoPlaceholder = document.getElementById("videoPlaceholder");
+            if (audioPlaceholder) {
+                audioList.removeChild(audioPlaceholder);
+            }
+            if (videoPlaceholder) {
+                videoList.removeChild(videoPlaceholder);
+            }
+
+            // 添加音频和视频文件
+            mediaFiles.forEach(function(file) {
                 var listItem = document.createElement("li");
-                listItem.textContent = media.name;
-                listItem.onclick = createClickListener(media.url, media.type);
-                if (media.type === "audio") {
+                listItem.textContent = file.name;
+                listItem.onclick = function() {
+                    playMedia(file);
+                };
+                if (file.type === "audio") {
                     audioList.appendChild(listItem);
-                } else if (media.type === "video") {
+                } else if (file.type === "video") {
                     videoList.appendChild(listItem);
                 }
-            }
+            });
+
+            // 显示音频和视频列表
+            document.getElementById("audioCategory").style.display = "block";
+            document.getElementById("videoCategory").style.display = "block";
         }
 
-        // 创建点击事件监听器
-        function createClickListener(url, type) {
-            return function() {
-                if (type === "audio") {
-                    document.getElementById("audioPlayer").src = url;
-                    document.getElementById("audioPlayer").style.display = "block";
-                    document.getElementById("videoPlayer").style.display = "none";
-                } else if (type === "video") {
-                    document.getElementById("videoPlayer").src = url;
-                    document.getElementById("videoPlayer").style.display = "block";
-                    document.getElementById("audioPlayer").style.display = "none";
+        // 播放媒体文件
+        function playMedia(file) {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
+            // 关闭另一个播放器
+            if (file.type === "audio") {
+                videoPlayer.pause();
+                videoPlayer.style.display = "none";
+                audioPlayer.style.display = "block";
+                audioPlayer.src = file.url;
+                audioPlayer.play();
+            } else if (file.type === "video") {
+                audioPlayer.pause();
+                audioPlayer.style.display = "none";
+                videoPlayer.style.display = "block";
+                videoPlayer.src = file.url;
+                videoPlayer.play();
+            }
+
+            // 记录当前播放的媒体索引
+            currentMediaIndex = mediaFiles.indexOf(file);
+        }
+
+        // 处理媒体播放结束事件
+        function handleMediaEnd(type) {
+            if (type === "audio") {
+                // 单次播放时不做处理
+                if (document.getElementById("audioPlayer").loop === false) {
+                    return;
                 }
-            };
+            } else if (type === "video") {
+                // 单次播放时不做处理
+                if (document.getElementById("videoPlayer").loop === false) {
+                    return;
+                }
+            }
+
+            // 自动播放下一个媒体文件
+            currentMediaIndex++;
+            if (currentMediaIndex >= mediaFiles.length) {
+                currentMediaIndex = 0;
+            }
+            playMedia(mediaFiles[currentMediaIndex]);
         }
 
         // 发送邮件
@@ -284,60 +331,33 @@
 
         // 切换主题
         function switchTheme() {
-            var themeSelect = document.getElementById("theme");
-            var theme = themeSelect.value;
-
+            var theme = document.getElementById("theme").value;
             if (theme === "dark") {
-                document.documentElement.style.setProperty("--background-color", "#333");
-                document.documentElement.style.setProperty("--text-color", "#fff");
+                document.documentElement.style.setProperty('--background-color', '#333');
+                document.documentElement.style.setProperty('--text-color', '#fff');
             } else {
-                document.documentElement.style.setProperty("--background-color", "#fff");
-                document.documentElement.style.setProperty("--text-color", "#333");
+                document.documentElement.style.setProperty('--background-color', '#fff');
+                document.documentElement.style.setProperty('--text-color', '#333');
             }
         }
 
-        // 显示当前时间
-        function showCurrentTime() {
+        // 页面加载时显示当前时间
+        function displayTime() {
+            var utcTimeElement = document.getElementById("utcTime");
+            var localTimeElement = document.getElementById("localTime");
             var utcTime = new Date().toUTCString();
             var localTime = new Date().toLocaleString();
 
-            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
-            document.getElementById("localTime").textContent = "本地时间：" + localTime;
+            utcTimeElement.textContent = "UTC 时间：" + utcTime;
+            localTimeElement.textContent = "本地时间：" + localTime;
         }
 
-        // 显示IP地址信息
-        function showIpAddress() {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "https://api64.ipify.org?format=json", true);
-
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    var response = JSON.parse(xhr.responseText);
-                    var ipAddress = response.ip;
-                    var ipInfo = document.getElementById("ipInfo");
-                    ipInfo.textContent = "IP 地址：" + ipAddress;
-                } else {
-                    console.error("无法获取 IP 地址信息。");
-                }
-            };
-
-            xhr.onerror = function () {
-                console.error("网络请求错误。");
-            };
-
-            xhr.send();
-        }
-
-        // 初始化页面
-        function init() {
-            showCurrentTime();
-            setInterval(showCurrentTime, 1000); // 每秒更新时间显示
-            showIpAddress(); // 显示 IP 地址信息
+        // 页面加载后执行
+        window.onload = function() {
             showModal(); // 显示用户协议模态框
-        }
-
-        // 页面加载完成时初始化
-        window.onload = init;
+            displayTime(); // 显示当前时间
+            switchTheme(); // 设置主题
+        };
     </script>
 </body>
 </html>

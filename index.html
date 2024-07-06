@@ -102,15 +102,9 @@
             left: 20px;
         }
         #utcTime {
-            position: absolute;
-            top: 50px;
-            left: 20px;
             font-size: 14px;
         }
         #localTime {
-            position: absolute;
-            top: 80px;
-            left: 20px;
             font-size: 14px;
         }
         #ipInfo {
@@ -209,12 +203,6 @@
         // 密码
         var password = "yaohua666";
 
-        // IP地址
-        var ipAddress = "<?php echo $_SERVER['REMOTE_ADDR'];?>";
-
-        // IP地址显示
-        document.getElementById("ipInfo").textContent = "IP地址：" + ipAddress;
-
         // 是否同意协议
         var agreed = false;
 
@@ -240,12 +228,7 @@
         function checkPassword() {
             var passwordInput = document.getElementById("password").value;
             if (passwordInput === password) {
-                document.getElementById("passwordForm").style.display = "none"; // 隐藏密码表单
-                document.getElementById("searchBox").style.display = "block"; // 显示搜索框
-
-                // 显示音频和视频列表
-                showMediaLists();
-
+                unlockMedia(); // 解锁媒体
                 return false; // 阻止表单提交
             } else {
                 alert("密码错误，请重新输入。");
@@ -253,52 +236,40 @@
             }
         }
 
-        // 显示音频和视频列表
-        function showMediaLists() {
+        // 解锁媒体
+        function unlockMedia() {
+            document.getElementById("audioPlaceholder").style.display = "none";
+            document.getElementById("videoPlaceholder").style.display = "none";
+
             var audioList = document.getElementById("audioList");
             var videoList = document.getElementById("videoList");
 
-            audioList.innerHTML = "";
-            videoList.innerHTML = "";
-
-            mediaFiles.forEach(function (file) {
+            for (var i = 0; i < mediaFiles.length; i++) {
+                var media = mediaFiles[i];
                 var listItem = document.createElement("li");
-                listItem.textContent = file.name;
-
-                if (file.type === "audio") {
+                listItem.textContent = media.name;
+                listItem.onclick = createClickListener(media.url, media.type);
+                if (media.type === "audio") {
                     audioList.appendChild(listItem);
-                } else if (file.type === "video") {
+                } else if (media.type === "video") {
                     videoList.appendChild(listItem);
                 }
-
-                listItem.addEventListener("click", function () {
-                    if (file.type === "audio") {
-                        playAudio(file.url);
-                    } else if (file.type === "video") {
-                        playVideo(file.url);
-                    }
-                });
-            });
+            }
         }
 
-        // 播放音频
-        function playAudio(url) {
-            var audioPlayer = document.getElementById("audioPlayer");
-            var videoPlayer = document.getElementById("videoPlayer");
-
-            audioPlayer.src = url;
-            audioPlayer.style.display = "block";
-            videoPlayer.style.display = "none";
-        }
-
-        // 播放视频
-        function playVideo(url) {
-            var audioPlayer = document.getElementById("audioPlayer");
-            var videoPlayer = document.getElementById("videoPlayer");
-
-            videoPlayer.src = url;
-            videoPlayer.style.display = "block";
-            audioPlayer.style.display = "none";
+        // 创建点击事件监听器
+        function createClickListener(url, type) {
+            return function() {
+                if (type === "audio") {
+                    document.getElementById("audioPlayer").src = url;
+                    document.getElementById("audioPlayer").style.display = "block";
+                    document.getElementById("videoPlayer").style.display = "none";
+                } else if (type === "video") {
+                    document.getElementById("videoPlayer").src = url;
+                    document.getElementById("videoPlayer").style.display = "block";
+                    document.getElementById("audioPlayer").style.display = "none";
+                }
+            };
         }
 
         // 发送邮件
@@ -313,30 +284,60 @@
 
         // 切换主题
         function switchTheme() {
-            var theme = document.getElementById("theme").value;
-            var root = document.documentElement;
+            var themeSelect = document.getElementById("theme");
+            var theme = themeSelect.value;
 
             if (theme === "dark") {
-                root.style.setProperty("--background-color", "#333");
-                root.style.setProperty("--text-color", "#fff");
+                document.documentElement.style.setProperty("--background-color", "#333");
+                document.documentElement.style.setProperty("--text-color", "#fff");
             } else {
-                root.style.setProperty("--background-color", "#fff");
-                root.style.setProperty("--text-color", "#333");
+                document.documentElement.style.setProperty("--background-color", "#fff");
+                document.documentElement.style.setProperty("--text-color", "#333");
             }
         }
 
-        // 获取并显示UTC和本地时间
-        function showTime() {
-            var now = new Date();
-            document.getElementById("utcTime").textContent = "UTC时间：" + now.toUTCString();
-            document.getElementById("localTime").textContent = "本地时间：" + now.toLocaleString();
+        // 显示当前时间
+        function showCurrentTime() {
+            var utcTime = new Date().toUTCString();
+            var localTime = new Date().toLocaleString();
+
+            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
+            document.getElementById("localTime").textContent = "本地时间：" + localTime;
         }
 
-        // 每秒更新时间
-        setInterval(showTime, 1000);
+        // 显示IP地址信息
+        function showIpAddress() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://api64.ipify.org?format=json", true);
 
-        // 初始显示模态框
-        showModal();
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    var ipAddress = response.ip;
+                    var ipInfo = document.getElementById("ipInfo");
+                    ipInfo.textContent = "IP 地址：" + ipAddress;
+                } else {
+                    console.error("无法获取 IP 地址信息。");
+                }
+            };
+
+            xhr.onerror = function () {
+                console.error("网络请求错误。");
+            };
+
+            xhr.send();
+        }
+
+        // 初始化页面
+        function init() {
+            showCurrentTime();
+            setInterval(showCurrentTime, 1000); // 每秒更新时间显示
+            showIpAddress(); // 显示 IP 地址信息
+            showModal(); // 显示用户协议模态框
+        }
+
+        // 页面加载完成时初始化
+        window.onload = init;
     </script>
 </body>
 </html>

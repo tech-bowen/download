@@ -79,10 +79,6 @@
             text-decoration: none;
             cursor: pointer;
         }
-        #agreeButton:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
         .category {
             margin-top: 20px;
         }
@@ -148,15 +144,6 @@
             <button type="submit">进入</button>
         </form>
 
-        <!-- 用户协议模态框 -->
-        <div id="modal" class="modal">
-            <div class="modal-content">
-                <h2>用户协议</h2>
-                <p>访客您好，请参阅<a href="https://blog.tech-bowen.com/2024/07/bowen.html" target="_blank">Bowen 综合播放器 用户协议</a>，继续访问网站则代表您同意用户协议。</p>
-                <button id="agreeButton" onclick="agree()">我已阅读</button>
-            </div>
-        </div>
-
         <!-- 搜索框 -->
         <input type="text" id="searchBox" placeholder="搜索歌曲..." style="display: none;">
 
@@ -191,6 +178,11 @@
         <button onclick="visitBlog()">前往博客</button>
     </div>
 
+    <!-- 版权信息和用户协议 -->
+    <footer>
+        <p>&copy; 2024 Bowen. 所有权利保留. <a href="https://blog.tech-bowen.com/2024/07/bowen.html" target="_blank">用户协议</a></p>
+    </footer>
+
     <!-- JavaScript -->
     <script>
         // 文件列表数据
@@ -208,127 +200,12 @@
         var password = "yaohua666";
 
         // 是否同意协议
-        var agreed = false;
+        var agreed = true; // 默认为 true，因为没有用户协议弹窗了
 
         // 当前媒体文件索引
         var currentMediaIndex = -1;
 
-        // 显示模态框
-        function showModal() {
-            var modal = document.getElementById("modal");
-            modal.style.display = "block";
-        }
-
-        // 关闭模态框
-        function closeModal() {
-            var modal = document.getElementById("modal");
-            modal.style.display = "none";
-        }
-
-        // 用户同意协议
-        function agree() {
-            agreed = true;
-            closeModal();
-            document.getElementById("password").focus(); // 自动聚焦密码框
-        }
-
-        // 检查密码
-        function checkPassword() {
-            var inputPassword = document.getElementById("password").value;
-            if (inputPassword === password) {
-                unlockMedia();
-                return false;
-            } else {
-                alert("密码错误，请重新输入。");
-                return false;
-            }
-        }
-
-        // 解锁媒体内容
-        function unlockMedia() {
-            // 清空密码提示信息
-            document.getElementById("audioPlaceholder").innerText = "";
-            document.getElementById("videoPlaceholder").innerText = "";
-
-            // 显示音频和视频列表
-            displayMediaList();
-            document.getElementById("searchBox").style.display = "block"; // 显示搜索框
-            document.getElementById("passwordForm").reset(); // 重置密码表单
-            document.getElementById("passwordForm").style.display = "none"; // 隐藏密码表单
-        }
-
-        // 显示音频和视频列表
-        function displayMediaList() {
-            var audioList = document.getElementById("audioList");
-            var videoList = document.getElementById("videoList");
-
-            mediaFiles.forEach(function(file, index) {
-                var listItem = document.createElement("li");
-                listItem.textContent = file.name;
-                listItem.onclick = function() {
-                    playMedia(index);
-                };
-
-                if (file.type === "audio") {
-                    audioList.appendChild(listItem);
-                } else if (file.type === "video") {
-                    videoList.appendChild(listItem);
-                }
-            });
-        }
-
-        // 播放媒体文件
-        function playMedia(index) {
-            var file = mediaFiles[index];
-            if (file.type === "audio") {
-                // 关闭视频播放器
-                document.getElementById("videoPlayer").pause();
-                document.getElementById("videoPlayer").style.display = "none";
-
-                // 播放音频
-                var audioPlayer = document.getElementById("audioPlayer");
-                audioPlayer.src = file.url;
-                audioPlayer.style.display = "block";
-                audioPlayer.play();
-                currentMediaIndex = index;
-            } else if (file.type === "video") {
-                // 关闭音频播放器
-                document.getElementById("audioPlayer").pause();
-                document.getElementById("audioPlayer").style.display = "none";
-
-                // 播放视频
-                var videoPlayer = document.getElementById("videoPlayer");
-                videoPlayer.src = file.url;
-                videoPlayer.style.display = "block";
-                videoPlayer.play();
-                currentMediaIndex = index;
-            }
-        }
-
-        // 处理媒体结束事件
-        function handleMediaEnd(type) {
-            if (type === "audio") {
-                // 自动切换下一首音频
-                var nextIndex = (currentMediaIndex + 1) % mediaFiles.length;
-                playMedia(nextIndex);
-            } else if (type === "video") {
-                // 自动切换下一个视频
-                var nextIndex = (currentMediaIndex + 1) % mediaFiles.length;
-                playMedia(nextIndex);
-            }
-        }
-
-        // 发送邮件按钮点击事件
-        function sendEmail() {
-            window.location.href = "mailto:admin@tech-bowen.com";
-        }
-
-        // 前往博客按钮点击事件
-        function visitBlog() {
-            window.open("https://blog.tech-bowen.com", "_blank");
-        }
-
-        // 主题切换函数
+        // 切换主题功能
         function switchTheme() {
             var theme = document.getElementById("theme").value;
             var root = document.documentElement;
@@ -342,77 +219,132 @@
             }
         }
 
-        // 更新当前时间
-        function updateTime() {
-            var utcTime = new Date().toUTCString();
-            var localTime = new Date().toLocaleString();
-            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
-            document.getElementById("localTime").textContent = "本地时间：" + localTime;
+        // 检查密码功能
+        function checkPassword() {
+            var passwordInput = document.getElementById("password").value;
+            if (passwordInput === password) {
+                // 解锁内容
+                showMediaList();
+                return false; // 防止表单提交
+            } else {
+                alert("密码错误，请重新输入。");
+                return false; // 防止表单提交
+            }
         }
 
-        // 获取IP地址和位置信息
-        function fetchIPInfo() {
-            fetch('https://api64.ipify.org?format=json')
+        // 显示媒体列表
+        function showMediaList() {
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
+
+            // 清空列表
+            audioList.innerHTML = "";
+            videoList.innerHTML = "";
+
+            // 填充音频和视频列表
+            mediaFiles.forEach(function (media, index) {
+                var listItem = document.createElement("li");
+                listItem.textContent = media.name;
+                listItem.addEventListener("click", function () {
+                    playMedia(index);
+                });
+
+                if (media.type === "audio") {
+                    audioList.appendChild(listItem);
+                } else if (media.type === "video") {
+                    videoList.appendChild(listItem);
+                }
+            });
+
+            // 显示搜索框
+            document.getElementById("searchBox").style.display = "block";
+        }
+
+        // 播放媒体文件
+        function playMedia(index) {
+            var media = mediaFiles[index];
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
+            // 根据类型播放
+            if (media.type === "audio") {
+                audioPlayer.src = media.url;
+                audioPlayer.style.display = "block";
+                videoPlayer.pause();
+                videoPlayer.style.display = "none";
+            } else if (media.type === "video") {
+                videoPlayer.src = media.url;
+                videoPlayer.style.display = "block";
+                audioPlayer.pause();
+                audioPlayer.style.display = "none";
+            }
+
+            // 记录当前播放的索引
+            currentMediaIndex = index;
+        }
+
+        // 处理媒体播放结束
+        function handleMediaEnd(type) {
+            if (type === "audio") {
+                // 自动播放下一个音频文件
+                currentMediaIndex++;
+                if (currentMediaIndex < mediaFiles.length && mediaFiles[currentMediaIndex].type === "audio") {
+                    playMedia(currentMediaIndex);
+                }
+            } else if (type === "video") {
+                // 视频播放结束时暂无自动播放下一个视频
+            }
+        }
+
+        // 发送邮件功能
+        function sendEmail() {
+            window.location.href = "mailto:admin@tech-bowen.com";
+        }
+
+        // 前往博客按钮功能
+        function visitBlog() {
+            window.open("https://blog.tech-bowen.com", "_blank");
+        }
+
+        // 页面加载时执行的函数
+        window.onload = function () {
+            switchTheme(); // 初始化主题
+            showTimeAndIP(); // 显示时间和IP地址
+        };
+
+        // 显示时间和IP地址
+        function showTimeAndIP() {
+            var utcTimeElement = document.getElementById("utcTime");
+            var localTimeElement = document.getElementById("localTime");
+            var ipAddressElement = document.getElementById("ipAddress");
+            var ipLocationElement = document.getElementById("ipLocation");
+
+            var now = new Date();
+            var options = { hour12: false };
+            var utcTimeString = now.toISOString().slice(0, 19).replace("T", " "); // 格式化为YYYY-MM-DD HH:MM:SS
+            var localTimeString = now.toLocaleString();
+            var yearMonthDay = now.toISOString().slice(0, 10); // 提取年月日部分
+
+            utcTimeElement.textContent = "UTC 时间：" + utcTimeString + " (年月日：" + yearMonthDay + ")";
+            localTimeElement.textContent = "本地时间：" + localTimeString + " (年月日：" + yearMonthDay + ")";
+
+            // 获取IP地址和地理位置信息
+            fetch('https://ipapi.co/json/')
                 .then(response => response.json())
                 .then(data => {
-                    var ipAddress = data.ip;
-                    document.getElementById("ipAddress").textContent = ipAddress;
-
-                    fetch('https://ipapi.co/' + ipAddress + '/json/')
-                        .then(response => response.json())
-                        .then(data => {
-                            var ipLocation = data.city + ', ' + data.country_name;
-                            document.getElementById("ipLocation").textContent = ipLocation;
-                        });
+                    ipAddressElement.textContent = "IP 地址：" + data.ip;
+                    ipLocationElement.textContent = "所属地区：" + data.city + ", " + data.region + ", " + data.country_name;
+                })
+                .catch(error => {
+                    console.error('获取IP地址和地理位置信息失败：', error);
+                    ipAddressElement.textContent = "IP 地址：未知";
+                    ipLocationElement.textContent = "所属地区：未知";
                 });
         }
 
-        // 页面加载完成后执行的初始化操作
-        window.onload = function() {
-            updateTime(); // 更新时间
-            fetchIPInfo(); // 获取IP地址和位置信息
+        // 定时更新时间和IP地址
+        setInterval(showTimeAndIP, 1000);
 
-            // 定时更新时间（每秒更新一次）
-            setInterval(updateTime, 1000);
-
-            // 显示模态框
-            showModal();
-        };
-
-        // 窗口加载时触发的事件
-        window.addEventListener('load', (event) => {
-            var passwordForm = document.getElementById('passwordForm');
-            passwordForm.reset(); // 重置密码表单
-        });
-
-        // 搜索框功能
-        document.getElementById("searchBox").addEventListener("input", function() {
-            var filter = this.value.toUpperCase();
-            var audioList = document.getElementById("audioList");
-            var videoList = document.getElementById("videoList");
-            var audioItems = audioList.getElementsByTagName("li");
-            var videoItems = videoList.getElementsByTagName("li");
-
-            // 音频列表过滤
-            for (var i = 0; i < audioItems.length; i++) {
-                var txtValue = audioItems[i].textContent || audioItems[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    audioItems[i].style.display = "";
-                } else {
-                    audioItems[i].style.display = "none";
-                }
-            }
-
-            // 视频列表过滤
-            for (var i = 0; i < videoItems.length; i++) {
-                var txtValue = videoItems[i].textContent || videoItems[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    videoItems[i].style.display = "";
-                } else {
-                    videoItems[i].style.display = "none";
-                }
-            }
-        });
     </script>
 </body>
 </html>

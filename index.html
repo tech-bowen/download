@@ -135,6 +135,10 @@
         <span id="utcTime"></span><br>
         <span id="localTime"></span>
     </div>
+    <div id="ipInfo">
+        IP 地址：<span id="ipAddress"></span><br>
+        所属地区：<span id="ipLocation"></span>
+    </div>
     <div class="container" id="contentContainer">
         <h1>Bowen 综合播放器</h1>
         <!-- 密码表单 -->
@@ -221,10 +225,11 @@
             modal.style.display = "none";
         }
 
-        // 同意协议
+        // 用户同意协议
         function agree() {
             agreed = true;
             closeModal();
+            unlockMedia();
         }
 
         // 检查密码
@@ -284,12 +289,14 @@
                 videoPlayer.style.display = "none";
                 audioPlayer.style.display = "block";
                 audioPlayer.src = file.url;
+                audioPlayer.loop = document.getElementById("loopCheckbox").checked;
                 audioPlayer.play();
             } else if (file.type === "video") {
                 audioPlayer.pause();
                 audioPlayer.style.display = "none";
                 videoPlayer.style.display = "block";
                 videoPlayer.src = file.url;
+                videoPlayer.loop = document.getElementById("loopCheckbox").checked;
                 videoPlayer.play();
             }
 
@@ -341,21 +348,28 @@
             }
         }
 
-        // 页面加载时显示当前时间
-        function displayTime() {
+        // 显示当前时间和IP地址信息
+        function displayTimeAndIpInfo() {
             var utcTimeElement = document.getElementById("utcTime");
             var localTimeElement = document.getElementById("localTime");
+            var ipAddressElement = document.getElementById("ipAddress");
+            var ipLocationElement = document.getElementById("ipLocation");
+
             var utcTime = new Date().toUTCString();
             var localTime = new Date().toLocaleString();
+            var ipAddress = "<?php echo $_SERVER['REMOTE_ADDR']; ?>"; // 获取用户 IP 地址
+            var ipLocation = "中国上海"; // 替换为根据 IP 查询的地理位置信息
 
             utcTimeElement.textContent = "UTC 时间：" + utcTime;
             localTimeElement.textContent = "本地时间：" + localTime;
+            ipAddressElement.textContent = ipAddress;
+            ipLocationElement.textContent = ipLocation;
         }
 
         // 页面加载后执行
         window.onload = function() {
+            displayTimeAndIpInfo(); // 显示当前时间和IP地址信息
             showModal(); // 显示用户协议模态框
-            displayTime(); // 显示当前时间
             switchTheme(); // 设置主题
         };
     </script>

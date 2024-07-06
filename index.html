@@ -144,9 +144,6 @@
             <button type="submit">进入</button>
         </form>
 
-        <!-- 搜索框 -->
-        <input type="text" id="searchBox" placeholder="搜索歌曲..." style="display: none;">
-
         <!-- 音乐播放器 -->
         <audio id="audioPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('audio')">
             您的浏览器不支持音频播放。
@@ -158,13 +155,13 @@
         </video>
 
         <!-- 文件分类列表 -->
-        <div class="category" id="audioCategory">
+        <div class="category" id="audioCategory" style="display: none;">
             <h2>音频文件</h2>
             <ul id="audioList">
                 <li id="audioPlaceholder">输入密码以解锁内容</li>
             </ul>
         </div>
-        <div class="category" id="videoCategory">
+        <div class="category" id="videoCategory" style="display: none;">
             <h2>视频文件</h2>
             <ul id="videoList">
                 <li id="videoPlaceholder">输入密码以解锁内容</li>
@@ -198,12 +195,6 @@
 
         // 密码
         var password = "yaohua666";
-
-        // 是否同意协议
-        var agreed = true; // 默认为 true，因为没有用户协议弹窗了
-
-        // 当前媒体文件索引
-        var currentMediaIndex = -1;
 
         // 切换主题功能
         function switchTheme() {
@@ -241,110 +232,84 @@
             audioList.innerHTML = "";
             videoList.innerHTML = "";
 
-            // 填充音频和视频列表
-            mediaFiles.forEach(function (media, index) {
-                var listItem = document.createElement("li");
-                listItem.textContent = media.name;
-                listItem.addEventListener("click", function () {
-                    playMedia(index);
-                });
-
-                if (media.type === "audio") {
-                    audioList.appendChild(listItem);
-                } else if (media.type === "video") {
-                    videoList.appendChild(listItem);
-                }
+            // 构建音频列表
+            mediaFiles.filter(file => file.type === "audio").forEach(audio => {
+                var li = document.createElement("li");
+                li.textContent = audio.name;
+                li.onclick = function() { playMedia(audio.url, 'audio'); };
+                audioList.appendChild(li);
             });
 
-            // 显示搜索框
-            document.getElementById("searchBox").style.display = "block";
+            // 构建视频列表
+            mediaFiles.filter(file => file.type === "video").forEach(video => {
+                var li = document.createElement("li");
+                li.textContent = video.name;
+                li.onclick = function() { playMedia(video.url, 'video'); };
+                videoList.appendChild(li);
+            });
+
+            // 显示分类
+            document.getElementById("audioCategory").style.display = "block";
+            document.getElementById("videoCategory").style.display = "block";
+
+            // 隐藏密码输入表单
+            document.getElementById("passwordForm").style.display = "none";
         }
 
-        // 播放媒体文件
-        function playMedia(index) {
-            var media = mediaFiles[index];
-            var audioPlayer = document.getElementById("audioPlayer");
-            var videoPlayer = document.getElementById("videoPlayer");
-
-            // 根据类型播放
-            if (media.type === "audio") {
-                audioPlayer.src = media.url;
+        // 播放媒体
+        function playMedia(url, type) {
+            if (type === 'audio') {
+                var audioPlayer = document.getElementById("audioPlayer");
+                audioPlayer.src = url;
                 audioPlayer.style.display = "block";
-                videoPlayer.pause();
-                videoPlayer.style.display = "none";
-            } else if (media.type === "video") {
-                videoPlayer.src = media.url;
+                document.getElementById("videoPlayer").style.display = "none";
+                audioPlayer.play();
+            } else if (type === 'video') {
+                var videoPlayer = document.getElementById("videoPlayer");
+                videoPlayer.src = url;
                 videoPlayer.style.display = "block";
-                audioPlayer.pause();
-                audioPlayer.style.display = "none";
-            }
-
-            // 记录当前播放的索引
-            currentMediaIndex = index;
-        }
-
-        // 处理媒体播放结束
-        function handleMediaEnd(type) {
-            if (type === "audio") {
-                // 自动播放下一个音频文件
-                currentMediaIndex++;
-                if (currentMediaIndex < mediaFiles.length && mediaFiles[currentMediaIndex].type === "audio") {
-                    playMedia(currentMediaIndex);
-                }
-            } else if (type === "video") {
-                // 视频播放结束时暂无自动播放下一个视频
+                document.getElementById("audioPlayer").style.display = "none";
+                videoPlayer.play();
             }
         }
 
-        // 发送邮件功能
+        // 发送邮件
         function sendEmail() {
             window.location.href = "mailto:admin@tech-bowen.com";
         }
 
-        // 前往博客按钮功能
+        // 前往博客
         function visitBlog() {
             window.open("https://blog.tech-bowen.com", "_blank");
         }
 
-        // 页面加载时执行的函数
-        window.onload = function () {
-            switchTheme(); // 初始化主题
-            showTimeAndIP(); // 显示时间和IP地址
-        };
-
-        // 显示时间和IP地址
-        function showTimeAndIP() {
-            var utcTimeElement = document.getElementById("utcTime");
-            var localTimeElement = document.getElementById("localTime");
-            var ipAddressElement = document.getElementById("ipAddress");
-            var ipLocationElement = document.getElementById("ipLocation");
-
+        // 获取本地时间和 UTC 时间
+        function updateTime() {
             var now = new Date();
-            var options = { hour12: false };
-            var utcTimeString = now.toISOString().slice(0, 19).replace("T", " "); // 格式化为YYYY-MM-DD HH:MM:SS
-            var localTimeString = now.toLocaleString();
-            var yearMonthDay = now.toISOString().slice(0, 10); // 提取年月日部分
+            var utcTime = now.toISOString().slice(0, 19).replace("T", " ");
+            var localTime = now.toLocaleString();
+            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
+            document.getElementById("localTime").textContent = "本地时间：" + localTime;
+        }
 
-            utcTimeElement.textContent = "UTC 时间：" + utcTimeString + " (年月日：" + yearMonthDay + ")";
-            localTimeElement.textContent = "本地时间：" + localTimeString + " (年月日：" + yearMonthDay + ")";
-
-            // 获取IP地址和地理位置信息
+        // 获取 IP 地址和地理位置
+        function fetchIPInfo() {
             fetch('https://ipapi.co/json/')
                 .then(response => response.json())
                 .then(data => {
-                    ipAddressElement.textContent = "IP 地址：" + data.ip;
-                    ipLocationElement.textContent = "所属地区：" + data.city + ", " + data.region + ", " + data.country_name;
+                    document.getElementById("ipAddress").textContent = data.ip;
+                    document.getElementById("ipLocation").textContent = data.city + ', ' + data.region;
                 })
                 .catch(error => {
-                    console.error('获取IP地址和地理位置信息失败：', error);
-                    ipAddressElement.textContent = "IP 地址：未知";
-                    ipLocationElement.textContent = "所属地区：未知";
+                    console.error('获取 IP 地址和地理位置出错:', error);
                 });
         }
 
-        // 定时更新时间和IP地址
-        setInterval(showTimeAndIP, 1000);
-
+        // 实时更新时间和 IP 地址信息
+        updateTime();
+        fetchIPInfo();
+        setInterval(updateTime, 1000); // 每秒更新时间
+        setInterval(fetchIPInfo, 60000); // 每分钟更新 IP 地址和地理位置
     </script>
 </body>
 </html>

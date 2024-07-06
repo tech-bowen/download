@@ -105,36 +105,39 @@
         #currentTime span {
             display: block;
         }
-        .agreement-modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .agreement-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.2);
-            position: relative;
-        }
         #utcTime {
             position: absolute;
             top: 20px;
             right: 20px;
             font-size: 14px;
         }
+        #ipLocation {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 14px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+            #currentTime, #utcTime {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- 用户协议弹窗 -->
+    <div class="modal" id="agreementModal">
+        <div class="modal-content">
+            <h2>用户协议</h2>
+            <p>访客您好，请参阅《Bowen 综合播放器 用户协议》，继续访问网站则代表您同意用户协议</p>
+            <button onclick="viewAgreement()">查看协议</button>
+            <button onclick="agreeToAgreement()">我已查看</button>
+        </div>
+    </div>
     <div class="theme-switch">
         <label for="theme">主题：</label>
         <select id="theme" onchange="switchTheme()">
@@ -151,7 +154,7 @@
         <!-- 密码表单 -->
         <form id="passwordForm" onsubmit="return checkPassword()">
             <label for="password">请输入密码：</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="password" required> <!-- 密码输入框 -->
             <button type="submit">进入</button>
         </form>
 
@@ -180,213 +183,195 @@
         <!-- 文件分类列表 -->
         <div class="category" id="audioCategory">
             <h2>音频文件</h2>
-            <ul id="audioList">
+            <ul id="audioList" style="list-style: none;"> <!-- 移除前面的点 -->
                 <li id="audioPlaceholder">请输入密码后解锁本列表</li>
             </ul>
         </div>
         <div class="category" id="videoCategory">
             <h2>视频文件</h2>
-            <ul id="videoList">
+            <ul id="videoList" style="list-style: none;"> <!-- 移除前面的点 -->
                 <li id="videoPlaceholder">请输入密码后解锁本列表</li>
             </ul>
         </div>
 
+        <!-- 隐藏的内容 -->
+        <div id="hiddenContent" style="display: none;">
+            <p>这是隐藏的内容，仅在复制密码验证通过后显示。</p>
+        </div>
+
+        <!-- 复制密码输入框和按钮 -->
+        <input type="password" id="copyPassword" placeholder="请输入复制密码">
+        <button onclick="checkCopyPassword()">验证复制密码</button>
+
         <!-- 发送邮件按钮 -->
         <button onclick="sendEmail()">发送邮件</button>
 
-        <!-- 前往博客按钮 -->
-        <button onclick="visitBlog()">前往博客</button>
-
-        <!-- 复制内容提示 -->
-        <p>按 <kbd>Ctrl + C</kbd> 复制内容时将需要密码解锁权限</p>
+        <!-- 访问博客按钮 -->
+        <button onclick="visitBlog()">访问博客</button>
     </div>
 
-    <!-- 用户协议弹窗 -->
-    <div class="agreement-modal" id="agreementModal">
-        <div class="agreement-content">
-            <h2>用户协议</h2>
-            <p>访客您好，请阅读《Bowen 综合播放器》用户协议后方可访问，阅读完毕后按下下方的"我已阅读"</p>
-            <button onclick="viewAgreement()">查看协议</button>
-            <button id="agreeButton" onclick="agreeAndClose()" disabled>我已阅读</button>
-        </div>
-    </div>
-
-    <!-- JavaScript -->
+    <!-- JavaScript 脚本 -->
     <script>
-        // 文件列表数据
+        // 媒体文件列表
         var mediaFiles = [
-            { name: "Fool for you.mp3", url: "https://download.tech-bowen.com/Fool for you.mp3", type: "audio" },
-            { name: "Ferrari.mp3", url: "https://download.tech-bowen.com/Ferrari.mp3", type: "audio" },
-            { name: "Jar of love.mp3", url: "https://download.tech-bowen.com/Jar of love.mp3", type: "audio" },
-            { name: "离别开出花.mp3", url: "https://download.tech-bowen.com/离别开出花.mp3", type: "audio" },
-            { name: "Midnight City.mp3", url: "https://download.tech-bowen.com/Midnight City.mp3", type: "audio" },
-            { name: "使命召唤联赛视频1.mp4", url: "https://download.tech-bowen.com/call of duty league1 .mp4", type: "video" },
-            { name: "Escape the backroom 6-7月.mp4", url: "https://download.tech-bowen.com/escape the backroom 1.mp4", type: "video" },
-            { name: "带我去找夜生活.mp3", url: "https://download.tech-bowen.com/带我去找夜生活.mp3", type: "audio" },
-            { name: "Past Chicken.mp3", url: "https://download.tech-bowen.com/Past Chicken.mp3", type: "audio" },
-            { name: "给你一瓶魔法药水.mp3", url: "https://download.tech-bowen.com/给你一瓶魔法药水.mp3", type: "audio" },
-            { name: "Letting go.mp3", url: "https://download.tech-bowen.com/Letting go.mp3", type: "audio" }
+            { name: "file1.mp3", url: "https://download.tech-bowen.com/file1.mp3", type: "audio" },
+            { name: "file2.mp4", url: "https://download.tech-bowen.com/file2.mp4", type: "video" },
+            { name: "Lovespace.mp3", url: "https://download.tech-bowen.com/Lovespace.mp3", type: "audio" }
         ];
 
-        // 当前播放器索引
-        var currentIndex = 0;
+        // 当前时间更新函数
+        function updateTime() {
+            var now = new Date();
+            var utcNow = new Date(now.toUTCString().slice(0, -4));
+            var utcOffset = 8 * 60; // UTC+8 的分钟数
+            var utcPlus8 = new Date(utcNow.getTime() + utcOffset * 60000);
 
-        // 页面加载完成后执行
-        document.addEventListener("DOMContentLoaded", function(event) {
-            // 获取并显示 UTC 和 UTC+8 时间
-            displayUTCTime();
-
-            // 检查是否已同意用户协议
-            var agreed = localStorage.getItem("agreed");
-            if (!agreed) {
-                document.getElementById("agreementModal").style.display = "block";
-            } else {
-                document.getElementById("contentContainer").style.display = "block";
-            }
-        });
+            document.getElementById("utcTime").textContent = "UTC: " + utcNow.toLocaleString();
+            document.getElementById("localTime").textContent = "UTC+8: " + utcPlus8.toLocaleString();
+        }
 
         // 切换主题
         function switchTheme() {
             var theme = document.getElementById("theme").value;
-            var root = document.documentElement;
             if (theme === "dark") {
-                root.style.setProperty("--background-color", "#333");
-                root.style.setProperty("--text-color", "#fff");
+                document.documentElement.style.setProperty('--background-color', '#333');
+                document.documentElement.style.setProperty('--text-color', '#fff');
             } else {
-                root.style.setProperty("--background-color", "#fff");
-                root.style.setProperty("--text-color", "#333");
+                document.documentElement.style.setProperty('--background-color', '#fff');
+                document.documentElement.style.setProperty('--text-color', '#000');
             }
         }
 
-        // 检查密码是否正确
+        // 检查密码
         function checkPassword() {
             var password = document.getElementById("password").value;
-            // 这里可以根据实际需要设置密码验证逻辑
-            if (password === "yaohua666") {
-                document.getElementById("passwordForm").reset();
-                document.getElementById("audioList").innerHTML = "";
-                document.getElementById("videoList").innerHTML = "";
-                displayMediaFiles();
-                return false; // 防止提交表单导致页面刷新
+            if (password === "yaohua666") {  // 这里修改访问密码
+                document.getElementById("passwordForm").style.display = "none";
+                document.getElementById("searchBox").style.display = "block";
+                document.getElementById("playModeContainer").style.display = "block";
+                loadMediaFiles();
             } else {
-                alert("密码错误，请重新输入。");
-                return false;
+                alert("密码错误，请重试。");
+            }
+            return false; // 阻止表单提交
+        }
+
+        // 验证复制密码
+        function checkCopyPassword() {
+            var copyPassword = document.getElementById("copyPassword").value;
+            if (copyPassword === "admin") {  // 这里修改复制密码
+                document.getElementById("hiddenContent").style.display = "block";
+            } else {
+                alert("复制密码错误，请重试。");
             }
         }
 
-        // 显示音频和视频列表
-        function displayMediaFiles() {
+        // 过滤歌曲
+        function filterSongs() {
+            var searchBox = document.getElementById("searchBox");
+            var filter = searchBox.value.toLowerCase();
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
+            var audioItems = audioList.getElementsByTagName("li");
+            var videoItems = videoList.getElementsByTagName("li");
+
+            for (var i = 0; i < audioItems.length; i++) {
+                var txtValue = audioItems[i].textContent || audioItems[i].innerText;
+                audioItems[i].style.display = txtValue.toLowerCase().includes(filter) ? "" : "none";
+            }
+
+            for (var j = 0; j < videoItems.length; j++) {
+                var txtValue = videoItems[j].textContent || videoItems[j].innerText;
+                videoItems[j].style.display = txtValue.toLowerCase().includes(filter) ? "" : "none";
+            }
+        }
+
+        // 加载媒体文件
+        function loadMediaFiles() {
             var audioList = document.getElementById("audioList");
             var videoList = document.getElementById("videoList");
 
+            audioList.innerHTML = "";
+            videoList.innerHTML = "";
+
             mediaFiles.forEach(function(file) {
-                var listItem = document.createElement("li");
-                listItem.textContent = file.name;
+                var li = document.createElement("li");
+                li.textContent = file.name;
+                li.onclick = function() {
+                    playMedia(file);
+                };
                 if (file.type === "audio") {
-                    listItem.onclick = function() {
-                        playAudio(file.url);
-                    };
-                    audioList.appendChild(listItem);
-                } else if (file.type === "video") {
-                    listItem.onclick = function() {
-                        playVideo(file.url);
-                    };
-                    videoList.appendChild(listItem);
+                    audioList.appendChild(li);
+                } else {
+                    videoList.appendChild(li);
                 }
             });
-
-            document.getElementById("contentContainer").style.display = "block";
         }
 
-        // 播放音频
-        function playAudio(url) {
+        // 播放媒体文件
+        function playMedia(file) {
             var audioPlayer = document.getElementById("audioPlayer");
-            audioPlayer.src = url;
-            audioPlayer.style.display = "block";
-            document.getElementById("videoPlayer").style.display = "none";
-            audioPlayer.play();
-        }
-
-        // 播放视频
-        function playVideo(url) {
             var videoPlayer = document.getElementById("videoPlayer");
-            videoPlayer.src = url;
-            videoPlayer.style.display = "block";
-            document.getElementById("audioPlayer").style.display = "none";
-            videoPlayer.play();
+
+            if (file.type === "audio") {
+                videoPlayer.style.display = "none";
+                audioPlayer.style.display = "block";
+                audioPlayer.src = file.url;
+                audioPlayer.play();
+            } else if (file.type === "video") {
+                audioPlayer.style.display = "none";
+                videoPlayer.style.display = "block";
+                videoPlayer.src = file.url;
+                videoPlayer.play();
+            }
         }
 
-        // 发送邮件按钮点击事件
-        function sendEmail() {
-            // 实现发送邮件的逻辑
-            alert("邮件已发送至 admin@tech-bowen.com");
-        }
-
-        // 前往博客按钮点击事件
-        function visitBlog() {
-            window.location.href = "https://blog.tech-bowen.com/2024/07/bowen.html";
-        }
-
-        // 显示用户协议弹窗
+        // 用户协议相关功能
         function viewAgreement() {
-            document.getElementById("agreementModal").style.display = "block";
+            window.open("https://blog.tech-bowen.com/2024/07/bowen.html", "_blank");
         }
 
-        // 同意用户协议并关闭弹窗
-        function agreeAndClose() {
-            localStorage.setItem("agreed", true);
+        function agreeToAgreement() {
             document.getElementById("agreementModal").style.display = "none";
             document.getElementById("contentContainer").style.display = "block";
-        }
-
-        // 过滤歌曲列表
-        function filterSongs() {
-            var keyword = document.getElementById("searchBox").value.toLowerCase();
-            var audioItems = document.getElementById("audioList").getElementsByTagName("li");
-            var videoItems = document.getElementById("videoList").getElementsByTagName("li");
-
-            Array.from(audioItems).forEach(function(item) {
-                var itemName = item.textContent.toLowerCase();
-                if (itemName.indexOf(keyword) === -1) {
-                    item.style.display = "none";
-                } else {
-                    item.style.display = "block";
-                }
-            });
-
-            Array.from(videoItems).forEach(function(item) {
-                var itemName = item.textContent.toLowerCase();
-                if (itemName.indexOf(keyword) === -1) {
-                    item.style.display = "none";
-                } else {
-                    item.style.display = "block";
-                }
-            });
+            updateTime();
         }
 
         // 设置播放模式
         function setPlayMode() {
-            var mode = document.getElementById("playMode").value;
+            var playMode = document.getElementById("playMode").value;
             var audioPlayer = document.getElementById("audioPlayer");
-            if (mode === "loop") {
+            if (playMode === "loop") {
                 audioPlayer.loop = true;
             } else {
                 audioPlayer.loop = false;
             }
         }
 
-        // 显示 UTC 和 UTC+8 时间
-        function displayUTCTime() {
-            var utcTimeElement = document.getElementById("utcTime");
-            var localTimeElement = document.getElementById("localTime");
-            var options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            setInterval(function() {
-                var now = new Date();
-                var utcTimeString = now.toISOString().replace('Z', '').replace('T', ' ');
-                utcTimeElement.textContent = "UTC: " + utcTimeString;
-                localTimeElement.textContent = "UTC+8: " + now.toLocaleString('en-US', options);
-            }, 1000);
+        // 发送邮件
+        function sendEmail() {
+            window.location.href = "mailto:admin@tech-bowen.com";
         }
+
+        // 访问博客
+        function visitBlog() {
+            window.open("https://blog.tech-bowen.com", "_blank");
+        }
+
+        // 初始化时间更新
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // 检测IP属地 (伪代码示例，实际需要服务器支持)
+        /*
+        fetch('https://api.ipgeolocation.io/ipgeo?apiKey=YOUR_API_KEY')
+            .then(response => response.json())
+            .then(data => {
+                var location = data.country_name + ", " + data.city;
+                document.getElementById("ipLocation").textContent = "IP属地: " + location;
+            })
+            .catch(error => console.error('Error:', error));
+        */
     </script>
 </body>
 </html>

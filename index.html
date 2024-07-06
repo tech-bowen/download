@@ -47,7 +47,7 @@
             background-color: #0056b3;
         }
         .modal {
-            display: block; /* 默认显示弹窗 */
+            display: none; /* 默认隐藏弹窗 */
             position: fixed;
             z-index: 1;
             left: 0;
@@ -229,7 +229,7 @@
         function agree() {
             agreed = true;
             closeModal();
-            unlockMedia();
+            document.getElementById("password").focus(); // 自动聚焦密码框
         }
 
         // 检查密码
@@ -246,16 +246,15 @@
 
         // 解锁媒体内容
         function unlockMedia() {
-            if (agreed) {
-                // 清空密码提示信息
-                document.getElementById("audioPlaceholder").innerText = "";
-                document.getElementById("videoPlaceholder").innerText = "";
+            // 清空密码提示信息
+            document.getElementById("audioPlaceholder").innerText = "";
+            document.getElementById("videoPlaceholder").innerText = "";
 
-                // 显示音频和视频列表
-                displayMediaList();
-            } else {
-                showModal();
-            }
+            // 显示音频和视频列表
+            displayMediaList();
+            document.getElementById("searchBox").style.display = "block"; // 显示搜索框
+            document.getElementById("passwordForm").reset(); // 重置密码表单
+            document.getElementById("passwordForm").style.display = "none"; // 隐藏密码表单
         }
 
         // 显示音频和视频列表
@@ -375,12 +374,44 @@
 
             // 定时更新时间（每秒更新一次）
             setInterval(updateTime, 1000);
+
+            // 显示模态框
+            showModal();
         };
 
         // 窗口加载时触发的事件
         window.addEventListener('load', (event) => {
             var passwordForm = document.getElementById('passwordForm');
             passwordForm.reset(); // 重置密码表单
+        });
+
+        // 搜索框功能
+        document.getElementById("searchBox").addEventListener("input", function() {
+            var filter = this.value.toUpperCase();
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
+            var audioItems = audioList.getElementsByTagName("li");
+            var videoItems = videoList.getElementsByTagName("li");
+
+            // 音频列表过滤
+            for (var i = 0; i < audioItems.length; i++) {
+                var txtValue = audioItems[i].textContent || audioItems[i].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    audioItems[i].style.display = "";
+                } else {
+                    audioItems[i].style.display = "none";
+                }
+            }
+
+            // 视频列表过滤
+            for (var i = 0; i < videoItems.length; i++) {
+                var txtValue = videoItems[i].textContent || videoItems[i].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    videoItems[i].style.display = "";
+                } else {
+                    videoItems[i].style.display = "none";
+                }
+            }
         });
     </script>
 </body>

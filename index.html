@@ -3,226 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>综合播放器</title>
+    <title>Bowen 综合播放器</title>
+    <!-- CSS 样式 -->
     <style>
-        /* 样式表可以根据需要自行修改 */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f2f2f2;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+        body {
             font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 20px;
+            text-align: center;
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-
-        .header h1 {
-            font-size: 24px;
-            margin: 0;
+        h1 {
+            color: #333;
         }
-
-        .header .time-info {
-            font-size: 14px;
+        input[type="password"],
+        input[type="text"] {
+            padding: 10px;
+            width: 250px; /* 增加输入框的宽度 */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
-
-        .content {
-            margin-bottom: 20px;
-        }
-
-        .button-group {
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
             margin-top: 10px;
         }
-
-        .button-group button {
-            padding: 8px 16px;
-            font-size: 16px;
+        button:hover {
+            background-color: #0056b3;
+        }
+        .modal {
+            display: block; /* 默认显示弹窗 */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4); /* 半透明黑色遮罩 */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
             cursor: pointer;
-            margin-right: 10px;
         }
-
-        .button-group button:last-child {
-            margin-right: 0;
+        #agreeButton:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
-
-        .footer {
-            text-align: center;
-            font-size: 14px;
+        .category {
             margin-top: 20px;
+        }
+        .category h2 {
+            text-align: left;
+            font-size: 20px;
+            color: #555;
+        }
+        .theme-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        #currentTime {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        #utcTime {
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            font-size: 14px;
+        }
+        #localTime {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            font-size: 14px;
+        }
+        #ipInfo {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 14px;
+            text-align: left;
+        }
+        ul {
+            list-style-type: none; /* 移除列表项前面的点 */
+            padding: 0;
+        }
+        ul li {
+            cursor: pointer; /* 鼠标悬停时变成手的样式 */
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>综合播放器</h1>
-        <div class="time-info">
-            <span id="utcTime"></span><br>
-            <span id="localTime"></span><br>
-            <span id="ipInfo"></span>
-        </div>
+    <div class="theme-switch">
+        <label for="theme">主题：</label>
+        <select id="theme" onchange="switchTheme()">
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+        </select>
     </div>
-
-    <div class="content">
-        <p>输入密码解锁列表</p>
-        <form id="passwordForm" onsubmit="return unlockList()">
-            <input type="password" id="password" placeholder="请输入密码" required>
-            <button type="submit">解锁</button>
+    <div id="currentTime">
+        <span id="utcTime"></span><br>
+        <span id="localTime"></span>
+    </div>
+    <div class="container" id="contentContainer">
+        <h1>Bowen 综合播放器</h1>
+        <!-- 密码表单 -->
+        <form id="passwordForm" onsubmit="return checkPassword()">
+            <label for="password">请输入密码：</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">进入</button>
         </form>
-    </div>
 
-    <div class="content">
-        <input type="text" id="searchBox" placeholder="搜索歌曲">
-        <button type="button" onclick="filterSongs()">搜索</button>
-    </div>
+        <!-- 用户协议模态框 -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <h2>用户协议</h2>
+                <p>访客您好，请参阅<a href="https://blog.tech-bowen.com/2024/07/bowen.html" target="_blank">Bowen 综合播放器 用户协议</a>，继续访问网站则代表您同意用户协议。</p>
+                <button id="agreeButton" onclick="agree()">我已阅读</button>
+            </div>
+        </div>
 
-    <div class="content">
-        <h2>音乐列表</h2>
-        <ul id="audioList">
-            <li>Fool for you.mp3</li>
-            <li>Ferrari.mp3</li>
-            <li>Jar of love.mp3</li>
-            <li>离别开出花.mp3</li>
-            <li>Midnight City.mp3</li>
-            <li>带我去找夜生活.mp3</li>
-            <li>Past Chicken.mp3</li>
-            <li>给你一瓶魔法药水.mp3</li>
-            <li>Letting go.mp3</li>
-        </ul>
-    </div>
+        <!-- 搜索框 -->
+        <input type="text" id="searchBox" placeholder="搜索歌曲..." style="display: none;">
 
-    <div class="content">
-        <h2>视频列表</h2>
-        <ul id="videoList">
-            <li>使命召唤联赛视频1.mp4</li>
-            <li>Escape the backroom 6-7月.mp4</li>
-        </ul>
-    </div>
+        <!-- 音乐播放器 -->
+        <audio id="audioPlayer" controls style="width: 100%; display: none;">
+            您的浏览器不支持音频播放。
+        </audio>
 
-    <div class="button-group">
-        <button id="agreeButton" onclick="agree()">我已阅读</button>
+        <!-- 视频播放器 -->
+        <video id="videoPlayer" controls style="width: 100%; display: none;">
+            您的浏览器不支持视频播放。
+        </video>
+
+        <!-- 文件分类列表 -->
+        <div class="category" id="audioCategory">
+            <h2>音频文件</h2>
+            <ul id="audioList">
+                <li id="audioPlaceholder">输入密码以解锁列表</li>
+            </ul>
+        </div>
+        <div class="category" id="videoCategory">
+            <h2>视频文件</h2>
+            <ul id="videoList">
+                <li id="videoPlaceholder">输入密码以解锁列表</li>
+            </ul>
+        </div>
+
+        <!-- 发送邮件按钮 -->
+        <button onclick="sendEmail()">发送邮件</button>
+
+        <!-- 前往博客按钮 -->
         <button onclick="visitBlog()">前往博客</button>
     </div>
 
-    <div class="footer">
-        &copy; 2024 Bowen Game | <a href="https://blog.tech-bowen.com">访问博客</a>
-    </div>
-</div>
+    <!-- JavaScript -->
+    <script>
+        // 文件列表数据
+        var mediaFiles = [
+            { name: "Fool for you.mp3", url: "https://download.tech-bowen.com/Fool for you.mp3", type: "audio" },
+            { name: "Ferrari.mp3", url: "https://download.tech-bowen.com/Ferrari.mp3", type: "audio" },
+            { name: "Jar of love.mp3", url: "https://download.tech-bowen.com/Jar of love.mp3", type: "audio" },
+            { name: "离别开出花.mp3", url: "https://download.tech-bowen.com/离别开出花.mp3", type: "audio" },
+            { name: "Midnight City.mp3", url: "https://download.tech-bowen.com/Midnight City.mp3", type: "audio" },
+            { name: "使命召唤联赛视频1.mp4", url: "https://download.tech-bowen.com/call of duty league1 .mp4", type: "video" },
+            { name: "Escape the backroom 6-7月.mp4", url: "https://download.tech-bowen.com/escape the backroom6-7.mp4", type: "video" }
+        ];
 
-<script>
-    // 文件列表数据
-    var mediaFiles = [
-        { name: "Fool for you.mp3", url: "https://download.tech-bowen.com/Fool for you.mp3", type: "audio" },
-        { name: "Ferrari.mp3", url: "https://download.tech-bowen.com/Ferrari.mp3", type: "audio" },
-        { name: "Jar of love.mp3", url: "https://download.tech-bowen.com/Jar of love.mp3", type: "audio" },
-        { name: "离别开出花.mp3", url: "https://download.tech-bowen.com/离别开出花.mp3", type: "audio" },
-        { name: "Midnight City.mp3", url: "https://download.tech-bowen.com/Midnight City.mp3", type: "audio" },
-        { name: "带我去找夜生活.mp3", url: "https://download.tech-bowen.com/带我去找夜生活.mp3", type: "audio" },
-        { name: "Past Chicken.mp3", url: "https://download.tech-bowen.com/Past Chicken.mp3", type: "audio" },
-        { name: "给你一瓶魔法药水.mp3", url: "https://download.tech-bowen.com/给你一瓶魔法药水.mp3", type: "audio" },
-        { name: "Letting go.mp3", url: "https://download.tech-bowen.com/Letting go.mp3", type: "audio" },
-        { name: "使命召唤联赛视频1.mp4", url: "https://download.tech-bowen.com/call of duty league1 .mp4", type: "video" },
-        { name: "Escape the backroom 6-7月.mp4", url: "https://download.tech-bowen.com/escape the backroom 1.mp4", type: "video" }
-    ];
+        // 密码
+        var password = "yaohua666";
 
-    // 更新时间和IP地址信息
-    function updateInfo() {
-        var now = new Date();
-        var utcTime = now.toISOString().slice(0, 19).replace("T", " ");
-        var localTime = now.toLocaleString();
-        document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
-        document.getElementById("localTime").textContent = "本地时间：" + localTime;
-        document.getElementById("ipInfo").textContent = "IP地址：" + ipAddress + " 属地：未知";
-    }
+        // IP地址
+        var ipAddress = "<?php echo $_SERVER['REMOTE_ADDR'];?>";
 
-    // 初始化页面时更新时间和IP地址信息，并每秒更新一次
-    updateInfo();
-    setInterval(updateInfo, 1000);
+        // IP地址显示
+        document.getElementById("ipInfo").textContent = "IP地址：" + ipAddress;
 
-    // 解锁列表功能
-    function unlockList() {
-        var password = "yaohua666"; // 替换为实际的密码
-        var passwordInput = document.getElementById("password").value;
-        if (passwordInput === password) {
-            document.getElementById("passwordForm").reset();
-            document.getElementById("searchBox").style.display = "block";
-            document.getElementById("audioList").style.display = "block";
-            document.getElementById("videoList").style.display = "block";
-            document.getElementById("agreeButton").disabled = false;
-            document.getElementById("agreeButton").textContent = "我已阅读";
-            document.getElementById("passwordForm").style.display = "none";
-            document.getElementById("ipInfo").textContent = "IP地址：" + ipAddress + " 属地：未知";
-            return false;
-        } else {
-            alert("密码错误，请重新输入！");
-            return false;
+        // 是否同意协议
+        var agreed = false;
+
+        // 显示模态框
+        function showModal() {
+            var modal = document.getElementById("modal");
+            modal.style.display = "block";
         }
-    }
 
-    // 搜索歌曲
-    function filterSongs() {
-        var searchTerm = document.getElementById("searchBox").value.toLowerCase();
-        var audioList = document.getElementById("audioList");
-        var videoList = document.getElementById("videoList");
-        var audioItems = audioList.getElementsByTagName("li");
-        var videoItems = videoList.getElementsByTagName("li");
+        // 关闭模态框
+        function closeModal() {
+            var modal = document.getElementById("modal");
+            modal.style.display = "none";
+        }
 
-        for (var i = 0; i < audioItems.length; i++) {
-            var itemName = audioItems[i].textContent.toLowerCase();
-            if (itemName.includes(searchTerm)) {
-                audioItems[i].style.display = "block";
+        // 同意协议
+        function agree() {
+            agreed = true;
+            closeModal();
+        }
+
+        // 检查密码
+        function checkPassword() {
+            var passwordInput = document.getElementById("password").value;
+            if (passwordInput === password) {
+                document.getElementById("passwordForm").style.display = "none"; // 隐藏密码表单
+                document.getElementById("searchBox").style.display = "block"; // 显示搜索框
+
+                // 显示音频和视频列表
+                showMediaLists();
+
+                return false; // 阻止表单提交
             } else {
-                audioItems[i].style.display = "none";
+                alert("密码错误，请重新输入。");
+                return false;
             }
         }
 
-        for (var j = 0; j < videoItems.length; j++) {
-            var itemName = videoItems[j].textContent.toLowerCase();
-            if (itemName.includes(searchTerm)) {
-                videoItems[j].style.display = "block";
+        // 显示音频和视频列表
+        function showMediaLists() {
+            var audioList = document.getElementById("audioList");
+            var videoList = document.getElementById("videoList");
+
+            audioList.innerHTML = "";
+            videoList.innerHTML = "";
+
+            mediaFiles.forEach(function (file) {
+                var listItem = document.createElement("li");
+                listItem.textContent = file.name;
+
+                if (file.type === "audio") {
+                    audioList.appendChild(listItem);
+                } else if (file.type === "video") {
+                    videoList.appendChild(listItem);
+                }
+
+                listItem.addEventListener("click", function () {
+                    if (file.type === "audio") {
+                        playAudio(file.url);
+                    } else if (file.type === "video") {
+                        playVideo(file.url);
+                    }
+                });
+            });
+        }
+
+        // 播放音频
+        function playAudio(url) {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
+            audioPlayer.src = url;
+            audioPlayer.style.display = "block";
+            videoPlayer.style.display = "none";
+        }
+
+        // 播放视频
+        function playVideo(url) {
+            var audioPlayer = document.getElementById("audioPlayer");
+            var videoPlayer = document.getElementById("videoPlayer");
+
+            videoPlayer.src = url;
+            videoPlayer.style.display = "block";
+            audioPlayer.style.display = "none";
+        }
+
+        // 发送邮件
+        function sendEmail() {
+            window.location.href = "mailto:admin@tech-bowen.com";
+        }
+
+        // 前往博客
+        function visitBlog() {
+            window.open("https://blog.tech-bowen.com", "_blank");
+        }
+
+        // 切换主题
+        function switchTheme() {
+            var theme = document.getElementById("theme").value;
+            var root = document.documentElement;
+
+            if (theme === "dark") {
+                root.style.setProperty("--background-color", "#333");
+                root.style.setProperty("--text-color", "#fff");
             } else {
-                videoItems[j].style.display = "none";
+                root.style.setProperty("--background-color", "#fff");
+                root.style.setProperty("--text-color", "#333");
             }
         }
-    }
 
-    // 发送邮件
-    function sendEmail() {
-        var subject = "用户访问统计";
-        var body = "用户IP地址：" + ipAddress + "\n访问时间：" + new Date();
-        var mailtoLink = "mailto:admin@tech-bowen.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-        window.location.href = mailtoLink;
-    }
-
-    // 前往博客
-    function visitBlog() {
-        window.open("https://blog.tech-bowen.com", "_blank");
-    }
-
-    // 切换主题
-    function switchTheme() {
-        var theme = document.getElementById("theme").value;
-        var root = document.documentElement;
-        if (theme === "dark") {
-            root.style.setProperty("--background-color", "#333");
-            root.style.setProperty("--text-color", "#fff");
-        } else {
-            root.style.setProperty("--background-color", "#fff");
-            root.style.setProperty("--text-color", "#333");
+        // 获取并显示UTC和本地时间
+        function showTime() {
+            var now = new Date();
+            document.getElementById("utcTime").textContent = "UTC时间：" + now.toUTCString();
+            document.getElementById("localTime").textContent = "本地时间：" + now.toLocaleString();
         }
-    }
 
-    // 同意用户协议
-    function agree() {
-        document.getElementById("agreeButton").disabled = true;
-        document.getElementById("ipInfo").textContent = "IP地址：" + ipAddress + " 属地：未知";
-    }
-</script>
+        // 每秒更新时间
+        setInterval(showTime, 1000);
+
+        // 初始显示模态框
+        showModal();
+    </script>
 </body>
 </html>

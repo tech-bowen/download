@@ -121,6 +121,11 @@
         ul li {
             cursor: pointer; /* 鼠标悬停时变成手的样式 */
         }
+        select {
+            padding: 8px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -189,6 +194,12 @@
 
         <!-- 前往博客按钮 -->
         <button onclick="visitBlog()">前往博客</button>
+
+        <!-- 播放模式选择 -->
+        <select id="playMode" onchange="changePlayMode()">
+            <option value="single">单次播放</option>
+            <option value="loop">循环播放</option>
+        </select>
     </div>
 
     <!-- JavaScript -->
@@ -200,18 +211,12 @@
             { name: "Jar of love.mp3", url: "https://download.tech-bowen.com/Jar of love.mp3", type: "audio" },
             { name: "离别开出花.mp3", url: "https://download.tech-bowen.com/离别开出花.mp3", type: "audio" },
             { name: "Midnight City.mp3", url: "https://download.tech-bowen.com/Midnight City.mp3", type: "audio" },
-            { name: "使命召唤联赛视频1.mp4", url: "https://download.tech-bowen.com/call of duty league1 .mp4", type: "video" },
-            { name: "Escape the backroom 6-7月.mp4", url: "https://download.tech-bowen.com/escape the backroom6-7.mp4", type: "video" }
+            { name: "使命召唤联赛视频1.mp4", url: "https://download.tech-bowen.com/使命召唤联赛视频1.mp4", type: "video" },
+            { name: "李芊芊同款教程.mp4", url: "https://download.tech-bowen.com/李芊芊同款教程.mp4", type: "video" }
         ];
 
-        // 密码
-        var password = "yaohua666";
-
-        // 是否同意协议
         var agreed = false;
-
-        // 当前媒体文件索引
-        var currentMediaIndex = -1;
+        var password = "techbowen"; // 设置密码
 
         // 显示模态框
         function showModal() {
@@ -270,7 +275,14 @@
             var player = media.type === "audio" ? document.getElementById("audioPlayer") : document.getElementById("videoPlayer");
             player.src = media.url;
             player.style.display = "block";
-            currentMediaIndex = index;
+
+            // 检查播放模式
+            var playMode = document.getElementById("playMode").value;
+            if (playMode === "loop") {
+                player.loop = true; // 循环播放
+            } else {
+                player.loop = false; // 单次播放
+            }
         }
 
         // 处理媒体播放结束
@@ -280,7 +292,6 @@
             } else if (type === "video") {
                 document.getElementById("videoPlayer").style.display = "none";
             }
-            currentMediaIndex = -1;
         }
 
         // 发送邮件
@@ -312,34 +323,18 @@
             agreed = true;
         }
 
-        // 更新当前时间
-        function updateCurrentTime() {
-            var now = new Date();
-            var utcTime = now.toUTCString();
-            var localTime = now.toLocaleString();
-
-            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
-            document.getElementById("localTime").textContent = "本地时间：" + localTime;
+        // 播放模式选择
+        function changePlayMode() {
+            var playMode = document.getElementById("playMode").value;
+            var player = document.getElementById("audioPlayer");
+            if (player.style.display !== "none") {
+                if (playMode === "loop") {
+                    player.loop = true; // 循环播放
+                } else {
+                    player.loop = false; // 单次播放
+                }
+            }
         }
-
-        // 更新 IP 地址和位置信息
-        function updateIPInfo() {
-            fetch('https://ipapi.co/json/')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("ipAddress").textContent = data.ip;
-                    document.getElementById("ipLocation").textContent = data.city + ", " + data.region;
-                })
-                .catch(error => {
-                    console.error('获取 IP 信息时出错：', error);
-                });
-        }
-
-        // 定时更新时间和 IP 信息
-        setInterval(function () {
-            updateCurrentTime();
-            updateIPInfo();
-        }, 1000); // 每秒更新一次
 
         // 页面加载完成时执行的操作
         window.onload = function () {
@@ -350,10 +345,6 @@
 
             // 初始化主题
             switchTheme();
-
-            // 更新当前时间和 IP 信息
-            updateCurrentTime();
-            updateIPInfo();
         };
     </script>
 </body>

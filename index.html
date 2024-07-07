@@ -12,10 +12,13 @@
             color: #333;
             padding: 20px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
+            margin: 20px auto;
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -27,7 +30,7 @@
         input[type="password"],
         input[type="text"] {
             padding: 10px;
-            width: 250px; /* 增加输入框的宽度 */
+            width: 250px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
@@ -47,7 +50,7 @@
             background-color: #0056b3;
         }
         .modal {
-            display: none; /* 默认隐藏弹窗 */
+            display: none;
             position: fixed;
             z-index: 1;
             left: 0;
@@ -55,7 +58,7 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.4); /* 半透明黑色遮罩 */
+            background-color: rgba(0,0,0,0.4);
         }
         .modal-content {
             background-color: #fefefe;
@@ -102,11 +105,11 @@
             margin-top: 20px;
         }
         ul {
-            list-style-type: none; /* 移除列表项前面的点 */
+            list-style-type: none;
             padding: 0;
         }
         ul li {
-            cursor: pointer; /* 鼠标悬停时变成手的样式 */
+            cursor: pointer;
         }
         footer {
             margin-top: 20px;
@@ -118,6 +121,16 @@
             font-size: 14px;
             text-align: center;
         }
+        .notice {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fffae6;
+            padding: 15px;
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255,223,0,0.3);
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -125,6 +138,14 @@
         <span id="utcTime"></span><br>
         <span id="localTime"></span>
     </div>
+    
+    <!-- 公告栏 -->
+    <div class="notice">
+        <h2>公告栏</h2>
+        <p>欢迎来到Bowen 综合播放器，此播放器由Github强力驱动！制作者Tech-bowen管理组，版权所有:Tech-bowen管理组。</p>
+        <p>请仔细参阅《Bowen 综合播放器 用户协议》，继续访问本网站则代表你同意本协议！</p>
+    </div>
+
     <div class="container" id="contentContainer">
         <h1>Bowen 综合播放器</h1>
         <!-- 密码表单 -->
@@ -197,112 +218,114 @@
             { name: "Past Chicken.mp3", url: "https://download.tech-bowen.com/Past Chicken.mp3", type: "audio" },
             { name: "Возьми сердце моё（以爱为囚）.mp3", url: "https://download.tech-bowen.com/Возьми сердце моё.mp3", type: "audio" },
             { name: "All For Love .mp3", url: "https://download.tech-bowen.com/All For Love .mp3", type: "audio" },
-            { name: "1.mp3", url: "https://download.tech-bowen.com/Возьми сердце моё.mp3", type: "audio" }
+            { name: "1.mp3", url: "https://download.tech-bowen.com/1.mp3", type: "audio" }
         ];
 
-        // 密码
-        var password = "yaohua666";
+        // 页面加载完成后运行的函数
+        window.onload = function() {
+            updateTime();
+            setInterval(updateTime, 1000); // 每秒更新一次时间
+            fetchIpInfo();
+        };
 
-        // 检查密码功能
-        function checkPassword() {
-            var passwordInput = document.getElementById("password").value;
-            if (passwordInput === password) {
-                // 解锁内容
-                showMediaList();
-                // 隐藏密码表单
-                document.getElementById("passwordForm").style.display = "none";
-                // 自动播放选中的音乐
-                autoPlayFirstMedia();
-            } else {
-                alert("密码错误，请重试。");
-            }
-            return false;
-        }
-
-        // 显示音频和视频列表
-        function showMediaList() {
-            var audioList = document.getElementById("audioList");
-            var videoList = document.getElementById("videoList");
-            mediaFiles.forEach(function (file) {
-                var li = document.createElement("li");
-                li.textContent = file.name;
-                li.onclick = function () {
-                    playMedia(file.url, file.type);
-                };
-                if (file.type === "audio") {
-                    audioList.appendChild(li);
-                } else if (file.type === "video") {
-                    videoList.appendChild(li);
-                }
-            });
-            document.getElementById("audioCategory").style.display = "block";
-            document.getElementById("videoCategory").style.display = "block";
-        }
-
-        // 播放选中的媒体文件
-        function playMedia(url, type) {
-            var audioPlayer = document.getElementById("audioPlayer");
-            var videoPlayer = document.getElementById("videoPlayer");
-
-            if (type === "audio") {
-                videoPlayer.pause();
-                videoPlayer.style.display = "none";
-                audioPlayer.src = url;
-                audioPlayer.style.display = "block";
-                audioPlayer.play();
-            } else if (type === "video") {
-                audioPlayer.pause();
-                audioPlayer.style.display = "none";
-                videoPlayer.src = url;
-                videoPlayer.style.display = "block";
-                videoPlayer.play();
-            }
-        }
-
-        // 自动播放第一个媒体文件
-        function autoPlayFirstMedia() {
-            var firstMedia = mediaFiles[0];
-            playMedia(firstMedia.url, firstMedia.type);
-        }
-
-        // 发送邮件
-        function sendEmail() {
-            window.location.href = "mailto:admin@tech-bowen.com";
-        }
-
-        // 前往博客
-        function visitBlog() {
-            window.location.href = "https://blog.tech-bowen.com";
-        }
-
-        // 获取 IP 地址和地区信息
-        function getIPInfo() {
+        // 获取IP地址和位置信息
+        function fetchIpInfo() {
             fetch('https://ipapi.co/json/')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("ipAddress").textContent = data.ip;
-                    document.getElementById("ipLocation").textContent = data.city + ', ' + data.region + ', ' + data.country_name;
+                    document.getElementById('ipAddress').textContent = data.ip;
+                    document.getElementById('ipLocation').textContent = data.city + ', ' + data.region + ', ' + data.country_name;
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error fetching IP info:', error);
+                    document.getElementById('ipAddress').textContent = '无法获取IP地址';
+                    document.getElementById('ipLocation').textContent = '无法获取位置信息';
+                });
         }
 
-        // 获取当前时间
+        // 更新时间
         function updateTime() {
             var now = new Date();
             var utcTime = now.toUTCString();
             var localTime = now.toLocaleString();
-            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
-            document.getElementById("localTime").textContent = "本地时间：" + localTime;
+
+            document.getElementById('utcTime').textContent = '当前UTC时间：' + utcTime;
+            document.getElementById('localTime').textContent = '当前本地时间：' + localTime;
         }
 
-        // 初始化
-        function init() {
-            getIPInfo();
-            updateTime();
-            setInterval(updateTime, 1000); // 每秒更新一次时间
+        // 密码验证
+        function checkPassword() {
+            var password = document.getElementById('password').value;
+            if (password === 'yaohua666') { // 替换为实际密码
+                document.getElementById('passwordForm').style.display = 'none';
+                loadMediaFiles();
+            } else {
+                alert('密码错误，请重试。');
+            }
+            return false;
         }
 
-        init();
+        // 加载媒体文件列表
+        function loadMediaFiles() {
+            var audioList = document.getElementById('audioList');
+            var videoList = document.getElementById('videoList');
+
+            mediaFiles.forEach(function(file) {
+                var li = document.createElement('li');
+                li.textContent = file.name;
+                li.onclick = function() {
+                    playMedia(file);
+                };
+
+                if (file.type === 'audio') {
+                    audioList.appendChild(li);
+                } else if (file.type === 'video') {
+                    videoList.appendChild(li);
+                }
+            });
+
+            document.getElementById('audioCategory').style.display = 'block';
+            document.getElementById('videoCategory').style.display = 'block';
+        }
+
+        // 播放媒体文件
+        function playMedia(file) {
+            var audioPlayer = document.getElementById('audioPlayer');
+            var videoPlayer = document.getElementById('videoPlayer');
+
+            if (file.type === 'audio') {
+                videoPlayer.style.display = 'none';
+                videoPlayer.pause();
+                audioPlayer.src = file.url;
+                audioPlayer.style.display = 'block';
+                audioPlayer.play();
+            } else if (file.type === 'video') {
+                audioPlayer.style.display = 'none';
+                audioPlayer.pause();
+                videoPlayer.src = file.url;
+                videoPlayer.style.display = 'block';
+                videoPlayer.play();
+            }
+        }
+
+        // 处理媒体播放结束事件
+        function handleMediaEnd(mediaType) {
+            if (mediaType === 'audio') {
+                document.getElementById('audioPlayer').style.display = 'none';
+            } else if (mediaType === 'video') {
+                document.getElementById('videoPlayer').style.display = 'none';
+            }
+        }
+
+        // 发送邮件
+        function sendEmail() {
+            window.location.href = 'mailto:admin@tech-bowen.com';
+        }
+
+        // 前往博客
+        function visitBlog() {
+            window.location.href = 'https://blog.tech-bowen.com';
+        }
     </script>
 </body>
 </html>

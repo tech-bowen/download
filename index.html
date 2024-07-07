@@ -104,11 +104,9 @@
             font-size: 14px;
         }
         #ipInfo {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
             font-size: 14px;
             text-align: left;
+            margin-top: 20px;
         }
         ul {
             list-style-type: none; /* 移除列表项前面的点 */
@@ -247,7 +245,7 @@
                 }
             });
 
-            // 显示分类
+            // 显示列表
             document.getElementById("audioCategory").style.display = "block";
             document.getElementById("videoCategory").style.display = "block";
         }
@@ -260,17 +258,21 @@
             if (type === "audio") {
                 audioPlayer.src = url;
                 audioPlayer.style.display = "block";
-                videoPlayer.style.display = "none";
                 audioPlayer.play();
+
+                videoPlayer.style.display = "none";
+                videoPlayer.pause();
             } else if (type === "video") {
                 videoPlayer.src = url;
                 videoPlayer.style.display = "block";
-                audioPlayer.style.display = "none";
                 videoPlayer.play();
+
+                audioPlayer.style.display = "none";
+                audioPlayer.pause();
             }
         }
 
-        // 处理媒体文件播放结束事件
+        // 处理媒体文件结束事件
         function handleMediaEnd(type) {
             if (type === "audio") {
                 document.getElementById("audioPlayer").style.display = "none";
@@ -278,6 +280,30 @@
                 document.getElementById("videoPlayer").style.display = "none";
             }
         }
+
+        // 获取并显示当前时间
+        function updateTime() {
+            var now = new Date();
+            var utcTime = now.toUTCString();
+            var localTime = now.toLocaleString();
+
+            document.getElementById("utcTime").textContent = "UTC 时间: " + utcTime;
+            document.getElementById("localTime").textContent = "本地时间: " + localTime;
+        }
+
+        // 定时更新时间
+        setInterval(updateTime, 1000);
+
+        // 获取IP地址和位置
+        fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("ipAddress").textContent = data.ip;
+                document.getElementById("ipLocation").textContent = data.city + ", " + data.region + ", " + data.country_name;
+            })
+            .catch(error => {
+                console.error('Error fetching IP info:', error);
+            });
 
         // 发送邮件
         function sendEmail() {
@@ -289,45 +315,9 @@
             window.location.href = "https://blog.tech-bowen.com";
         }
 
-        // 显示当前时间
-        function showCurrentTime() {
-            var now = new Date();
-            var utcTime = now.toUTCString();
-            var localTime = now.toLocaleString();
-
-            document.getElementById("utcTime").textContent = "UTC 时间: " + utcTime;
-            document.getElementById("localTime").textContent = "本地时间: " + localTime;
-        }
-
-        // 获取 IP 地址和地区信息
-        async function fetchIPInfo() {
-            try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                const ipAddress = data.ip;
-
-                document.getElementById('ipAddress').textContent = ipAddress;
-
-                const locationResponse = await fetch(`https://ipapi.co/${ipAddress}/json/`);
-                const locationData = await locationResponse.json();
-                const ipLocation = locationData.city + ", " + locationData.region + ", " + locationData.country;
-
-                document.getElementById('ipLocation').textContent = ipLocation;
-            } catch (error) {
-                console.error('Error fetching IP information:', error);
-            }
-        }
-
-        // 初始化页面
-        function init() {
-            switchTheme();
-            showCurrentTime();
-            setInterval(showCurrentTime, 1000); // 每秒更新时间
-            fetchIPInfo();
-        }
-
-        // 页面加载时初始化
-        window.onload = init;
+        // 初始设置
+        switchTheme();
+        updateTime();
     </script>
 </body>
 </html>

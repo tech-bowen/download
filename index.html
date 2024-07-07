@@ -8,8 +8,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
+            background-color: #fff;
+            color: #333;
             padding: 20px;
             text-align: center;
         }
@@ -87,15 +87,8 @@
             font-size: 20px;
             color: #555;
         }
-        .theme-switch {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
         #currentTime {
-            position: absolute;
-            top: 20px;
-            left: 20px;
+            margin-bottom: 20px;
         }
         #utcTime {
             font-size: 14px;
@@ -115,16 +108,19 @@
         ul li {
             cursor: pointer; /* 鼠标悬停时变成手的样式 */
         }
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .shortcut-info {
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="theme-switch">
-        <label for="theme">主题：</label>
-        <select id="theme" onchange="switchTheme()">
-            <option value="light">浅色</option>
-            <option value="dark">深色</option>
-        </select>
-    </div>
     <div id="currentTime">
         <span id="utcTime"></span><br>
         <span id="localTime"></span>
@@ -179,6 +175,12 @@
         <p>&copy; 2024 Bowen. 所有权利保留. <a href="https://blog.tech-bowen.com/2024/07/bowen.html" target="_blank">用户协议</a></p>
     </footer>
 
+    <!-- 快捷键使用说明 -->
+    <div class="shortcut-info">
+        <p>播放器快捷键使用说明：</p>
+        <p>↑ 增加音量 | ↓ 减少音量 | ← 倒退 | → 快进</p>
+    </div>
+
     <!-- JavaScript -->
     <script>
         // 文件列表数据
@@ -201,20 +203,6 @@
         // 密码
         var password = "yaohua666";
 
-        // 切换主题功能
-        function switchTheme() {
-            var theme = document.getElementById("theme").value;
-            var root = document.documentElement;
-
-            if (theme === "dark") {
-                root.style.setProperty("--background-color", "#333");
-                root.style.setProperty("--text-color", "#fff");
-            } else {
-                root.style.setProperty("--background-color", "#fff");
-                root.style.setProperty("--text-color", "#333");
-            }
-        }
-
         // 检查密码功能
         function checkPassword() {
             var passwordInput = document.getElementById("password").value;
@@ -223,93 +211,59 @@
                 showMediaList();
                 // 隐藏密码表单
                 document.getElementById("passwordForm").style.display = "none";
-                return false; // 防止表单提交
+                // 自动播放选中的音乐
+                autoPlayFirstMedia();
             } else {
-                alert("密码错误，请重新输入。");
-                return false; // 防止表单提交
+                alert("密码错误，请重试。");
             }
+            return false;
         }
 
-        // 显示媒体列表
+        // 显示音频和视频列表
         function showMediaList() {
             var audioList = document.getElementById("audioList");
             var videoList = document.getElementById("videoList");
-
-            // 清空现有列表
-            audioList.innerHTML = "";
-            videoList.innerHTML = "";
-
-            mediaFiles.forEach(function(file) {
+            mediaFiles.forEach(function (file) {
                 var li = document.createElement("li");
                 li.textContent = file.name;
-                li.onclick = function() { playMedia(file.url, file.type); };
-
+                li.onclick = function () {
+                    playMedia(file.url, file.type);
+                };
                 if (file.type === "audio") {
                     audioList.appendChild(li);
                 } else if (file.type === "video") {
                     videoList.appendChild(li);
                 }
             });
-
-            // 显示列表
             document.getElementById("audioCategory").style.display = "block";
             document.getElementById("videoCategory").style.display = "block";
         }
 
-        // 播放媒体文件
+        // 播放选中的媒体文件
         function playMedia(url, type) {
             var audioPlayer = document.getElementById("audioPlayer");
             var videoPlayer = document.getElementById("videoPlayer");
 
             if (type === "audio") {
+                videoPlayer.pause();
+                videoPlayer.style.display = "none";
                 audioPlayer.src = url;
                 audioPlayer.style.display = "block";
                 audioPlayer.play();
-
-                videoPlayer.style.display = "none";
-                videoPlayer.pause();
             } else if (type === "video") {
+                audioPlayer.pause();
+                audioPlayer.style.display = "none";
                 videoPlayer.src = url;
                 videoPlayer.style.display = "block";
                 videoPlayer.play();
-
-                audioPlayer.style.display = "none";
-                audioPlayer.pause();
             }
         }
 
-        // 处理媒体文件结束事件
-        function handleMediaEnd(type) {
-            if (type === "audio") {
-                document.getElementById("audioPlayer").style.display = "none";
-            } else if (type === "video") {
-                document.getElementById("videoPlayer").style.display = "none";
-            }
+        // 自动播放第一个媒体文件
+        function autoPlayFirstMedia() {
+            var firstMedia = mediaFiles[0];
+            playMedia(firstMedia.url, firstMedia.type);
         }
-
-        // 获取并显示当前时间
-        function updateTime() {
-            var now = new Date();
-            var utcTime = now.toUTCString();
-            var localTime = now.toLocaleString();
-
-            document.getElementById("utcTime").textContent = "UTC 时间: " + utcTime;
-            document.getElementById("localTime").textContent = "本地时间: " + localTime;
-        }
-
-        // 定时更新时间
-        setInterval(updateTime, 1000);
-
-        // 获取IP地址和位置
-        fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("ipAddress").textContent = data.ip;
-                document.getElementById("ipLocation").textContent = data.city + ", " + data.region + ", " + data.country_name;
-            })
-            .catch(error => {
-                console.error('Error fetching IP info:', error);
-            });
 
         // 发送邮件
         function sendEmail() {
@@ -321,9 +275,34 @@
             window.location.href = "https://blog.tech-bowen.com";
         }
 
-        // 初始设置
-        switchTheme();
-        updateTime();
+        // 获取 IP 地址和地区信息
+        function getIPInfo() {
+            fetch('https://ipapi.co/json/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("ipAddress").textContent = data.ip;
+                    document.getElementById("ipLocation").textContent = data.city + ', ' + data.region + ', ' + data.country_name;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // 获取当前时间
+        function updateTime() {
+            var now = new Date();
+            var utcTime = now.toUTCString();
+            var localTime = now.toLocaleString();
+            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
+            document.getElementById("localTime").textContent = "本地时间：" + localTime;
+        }
+
+        // 初始化
+        function init() {
+            getIPInfo();
+            updateTime();
+            setInterval(updateTime, 1000); // 每秒更新一次时间
+        }
+
+        init();
     </script>
 </body>
 </html>

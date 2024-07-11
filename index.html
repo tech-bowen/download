@@ -133,6 +133,11 @@
             box-shadow: 0 0 10px rgba(255,223,0,0.3);
             text-align: left;
         }
+        .playing-info {
+            margin-top: 10px;
+            font-size: 16px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -148,7 +153,7 @@
         <p>请仔细参阅《Bowen 综合播放器 用户协议》，继续访问本网站则代表你同意本协议！</p>
         <p>按照最新规定，密码请询问Tech-bowen管理组获得！</p>
         <p>----------------------------------------------------------------------</p>
-        <p>版本:Bowen 播放器V1.8.3 2024-7-8 18:29</p>
+        <p>版本:Bowen 播放器V1.8.4Beta 2024-7-11 18:13</p>
     </div>
 
     <div class="container" id="contentContainer">
@@ -189,6 +194,15 @@
 
         <!-- 前往博客按钮 -->
         <button onclick="visitBlog()">前往博客</button>
+
+        <!-- 正在播放信息 -->
+        <div class="playing-info" id="playingInfo" style="display: none;">
+            <strong>正在播放：</strong><span id="mediaName"></span>
+        </div>
+        <div class="playing-info" id="lyrics" style="display: none;">
+            <strong>歌词：</strong><br>
+            <p id="mediaLyrics"></p>
+        </div>
     </div>
 
     <div id="ipInfo">
@@ -230,112 +244,111 @@
             { name: "Minecraft Live is back for 2023.mp4", url: "https://download.tech-bowen.com/Minecraft Live is back for 2023.mp4", type: "video" }
         ];
 
-        var ipApis = [
-            'https://api.ipify.org?format=json',
-            'https://ipapi.co/json',
-            'https://api64.ipify.org?format=json'
-        ];
+        // 获取当前时间
+        function getCurrentTime() {
+            var now = new Date();
+            var utcTime = now.toISOString().slice(0, 19).replace("T", " ");
+            var localTime = now.toLocaleString();
+            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
+            document.getElementById("localTime").textContent = "本地时间：" + localTime;
+        }
 
+        // 显示 IP 地址和所属地区
+        function showIPInfo(ip, location) {
+            document.getElementById("ipAddress").textContent = ip;
+            document.getElementById("ipLocation").textContent = location;
+        }
+
+        // 检查密码
         function checkPassword() {
             var password = document.getElementById("password").value;
-            if (password === "xuchao666") {
-                unlockContent();
+            if (password === "TechBowen2023!") {
+                document.getElementById("passwordForm").style.display = "none";
+                document.getElementById("contentContainer").style.display = "block";
+                loadMediaFiles();
+                return false;
             } else {
-                alert("密码错误，请重试！");
+                alert("密码错误，请重新输入！");
+                return false;
             }
-            return false;
         }
 
-        function unlockContent() {
-            document.getElementById("passwordForm").style.display = "none";
-            document.getElementById("audioCategory").style.display = "block";
-            document.getElementById("videoCategory").style.display = "block";
-            loadMediaFiles();
-        }
-
+        // 加载媒体文件
         function loadMediaFiles() {
-            var audioList = document.getElementById("audioList");
-            var videoList = document.getElementById("videoList");
-
-            mediaFiles.forEach(function(file) {
-                var li = document.createElement("li");
-                li.textContent = file.name;
-                li.addEventListener("click", function() {
+            mediaFiles.forEach(function (file) {
+                var listItem = document.createElement("li");
+                listItem.textContent = file.name;
+                listItem.onclick = function () {
                     playMedia(file);
-                });
-
+                };
                 if (file.type === "audio") {
-                    audioList.appendChild(li);
+                    document.getElementById("audioList").appendChild(listItem);
+                    document.getElementById("audioCategory").style.display = "block";
                 } else if (file.type === "video") {
-                    videoList.appendChild(li);
+                    document.getElementById("videoList").appendChild(listItem);
+                    document.getElementById("videoCategory").style.display = "block";
                 }
             });
         }
 
+        // 播放媒体文件
         function playMedia(file) {
-            var audioPlayer = document.getElementById("audioPlayer");
-            var videoPlayer = document.getElementById("videoPlayer");
+            var mediaName = file.name.substring(0, file.name.lastIndexOf("."));
+            var mediaUrl = file.url;
+            var mediaType = file.type;
 
-            if (file.type === "audio") {
-                audioPlayer.src = file.url;
-                audioPlayer.style.display = "block";
-                videoPlayer.style.display = "none";
-                audioPlayer.play();
-            } else if (file.type === "video") {
-                videoPlayer.src = file.url;
-                videoPlayer.style.display = "block";
-                audioPlayer.style.display = "none";
-                videoPlayer.play();
+            if (mediaType === "audio") {
+                document.getElementById("audioPlayer").src = mediaUrl;
+                document.getElementById("audioPlayer").style.display = "block";
+                document.getElementById("videoPlayer").style.display = "none";
+                document.getElementById("playingInfo").style.display = "block";
+                document.getElementById("mediaName").textContent = mediaName;
+                if (file.lyrics) {
+                    document.getElementById("lyrics").style.display = "block";
+                    document.getElementById("mediaLyrics").textContent = file.lyrics;
+                } else {
+                    document.getElementById("lyrics").style.display = "none";
+                }
+            } else if (mediaType === "video") {
+                document.getElementById("videoPlayer").src = mediaUrl;
+                document.getElementById("videoPlayer").style.display = "block";
+                document.getElementById("audioPlayer").style.display = "none";
+                document.getElementById("playingInfo").style.display = "block";
+                document.getElementById("mediaName").textContent = mediaName;
+                document.getElementById("lyrics").style.display = "none";
             }
         }
 
+        // 处理媒体播放结束
         function handleMediaEnd(type) {
             if (type === "audio") {
-                var audioPlayer = document.getElementById("audioPlayer");
-                audioPlayer.style.display = "none";
+                document.getElementById("audioPlayer").pause();
             } else if (type === "video") {
-                var videoPlayer = document.getElementById("videoPlayer");
-                videoPlayer.style.display = "none";
+                document.getElementById("videoPlayer").pause();
             }
         }
 
+        // 发送邮件功能
         function sendEmail() {
             window.location.href = "mailto:admin@tech-bowen.com";
         }
 
+        // 前往博客按钮
         function visitBlog() {
-            window.location.href = "https://blog.tech-bowen.com";
+            window.open("https://blog.tech-bowen.com", "_blank");
         }
 
-        // 显示当前时间
-        function updateTime() {
-            var now = new Date();
-            var utcTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
-            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime.toLocaleString();
-            document.getElementById("localTime").textContent = "本地时间：" + now.toLocaleString();
-        }
-        setInterval(updateTime, 1000);
-        updateTime();
+        // 定时更新时间
+        setInterval(function () {
+            getCurrentTime();
+        }, 1000);
 
-        // 获取并显示IP地址和所属地区
-        function updateIPInfo() {
-            Promise.any(ipApis.map(api => fetch(api).then(response => response.json())))
-                .then(data => {
-                    var ip = data.ip || data.ipAddress;
-                    document.getElementById("ipAddress").textContent = ip;
-                    return fetch(`https://ipapi.co/${ip}/json`);
-                })
-                .then(response => response.json())
-                .then(data => {
-                    var location = `${data.city}, ${data.region}, ${data.country}`;
-                    document.getElementById("ipLocation").textContent = location;
-                })
-                .catch(error => {
-                    console.error("无法获取IP地址和所属地区信息：", error);
-                });
-        }
+        // 页面加载时获取当前时间和 IP 地址信息
+        document.addEventListener("DOMContentLoaded", function () {
+            getCurrentTime();
+            showIPInfo("正在维修IP检测服务", "正在维修IP检测服务");
+        });
 
-        updateIPInfo();
     </script>
 </body>
 </html>

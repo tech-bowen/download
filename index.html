@@ -153,7 +153,7 @@
         <p>请仔细参阅《Bowen 综合播放器 用户协议》，继续访问本网站则代表你同意本协议！</p>
         <p>按照最新规定，密码请询问Tech-bowen管理组获得！</p>
         <p>----------------------------------------------------------------------</p>
-        <p>版本:Bowen 播放器V1.8.4Beta 2024-7-11 18:13</p>
+        <p>版本:Bowen 播放器V1.8.5Beta 2024-7-11 23:11</p>
     </div>
 
     <div class="container" id="contentContainer">
@@ -166,12 +166,12 @@
         </form>
 
         <!-- 音乐播放器 -->
-        <audio id="audioPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('audio')">
+        <audio id="audioPlayer" controls loop style="width: 100%; display: none;" onended="handleMediaEnd('audio')">
             您的浏览器不支持音频播放。
         </audio>
 
         <!-- 视频播放器 -->
-        <video id="videoPlayer" controls style="width: 100%; display: none;" onended="handleMediaEnd('video')">
+        <video id="videoPlayer" controls loop style="width: 100%; display: none;" onended="handleMediaEnd('video')">
             您的浏览器不支持视频播放。
         </video>
 
@@ -244,111 +244,137 @@
             { name: "Minecraft Live is back for 2023.mp4", url: "https://download.tech-bowen.com/Minecraft Live is back for 2023.mp4", type: "video" }
         ];
 
-        // 获取当前时间
-        function getCurrentTime() {
-            var now = new Date();
-            var utcTime = now.toISOString().slice(0, 19).replace("T", " ");
-            var localTime = now.toLocaleString();
-            document.getElementById("utcTime").textContent = "UTC 时间：" + utcTime;
-            document.getElementById("localTime").textContent = "本地时间：" + localTime;
-        }
-
-        // 显示 IP 地址和所属地区
-        function showIPInfo(ip, location) {
-            document.getElementById("ipAddress").textContent = ip;
-            document.getElementById("ipLocation").textContent = location;
-        }
-
-        // 检查密码
+        // 用户认证
         function checkPassword() {
-            var password = document.getElementById("password").value;
-            if (password === "admin") {
-                document.getElementById("passwordForm").style.display = "none";
-                document.getElementById("contentContainer").style.display = "block";
-                loadMediaFiles();
+            var password = document.getElementById('password').value;
+            if (password === '') {
+                document.getElementById('passwordForm').style.display = 'none';
+                document.getElementById('audioCategory').style.display = 'block';
+                document.getElementById('videoCategory').style.display = 'block';
                 return false;
             } else {
-                alert("密码错误，请重新输入！");
+                alert('密码错误，请重新输入！');
                 return false;
             }
-        }
-
-        // 加载媒体文件
-        function loadMediaFiles() {
-            mediaFiles.forEach(function (file) {
-                var listItem = document.createElement("li");
-                listItem.textContent = file.name;
-                listItem.onclick = function () {
-                    playMedia(file);
-                };
-                if (file.type === "audio") {
-                    document.getElementById("audioList").appendChild(listItem);
-                    document.getElementById("audioCategory").style.display = "block";
-                } else if (file.type === "video") {
-                    document.getElementById("videoList").appendChild(listItem);
-                    document.getElementById("videoCategory").style.display = "block";
-                }
-            });
         }
 
         // 播放媒体文件
         function playMedia(file) {
-            var mediaName = file.name.substring(0, file.name.lastIndexOf("."));
-            var mediaUrl = file.url;
-            var mediaType = file.type;
+            var audioPlayer = document.getElementById('audioPlayer');
+            var videoPlayer = document.getElementById('videoPlayer');
+            var playingInfo = document.getElementById('playingInfo');
+            var mediaName = document.getElementById('mediaName');
+            var lyrics = document.getElementById('lyrics');
+            var mediaLyrics = document.getElementById('mediaLyrics');
 
-            if (mediaType === "audio") {
-                document.getElementById("audioPlayer").src = mediaUrl;
-                document.getElementById("audioPlayer").style.display = "block";
-                document.getElementById("videoPlayer").style.display = "none";
-                document.getElementById("playingInfo").style.display = "block";
-                document.getElementById("mediaName").textContent = mediaName;
-                if (file.lyrics) {
-                    document.getElementById("lyrics").style.display = "block";
-                    document.getElementById("mediaLyrics").textContent = file.lyrics;
-                } else {
-                    document.getElementById("lyrics").style.display = "none";
-                }
-            } else if (mediaType === "video") {
-                document.getElementById("videoPlayer").src = mediaUrl;
-                document.getElementById("videoPlayer").style.display = "block";
-                document.getElementById("audioPlayer").style.display = "none";
-                document.getElementById("playingInfo").style.display = "block";
-                document.getElementById("mediaName").textContent = mediaName;
-                document.getElementById("lyrics").style.display = "none";
+            mediaName.textContent = file.name;
+            playingInfo.style.display = 'block';
+
+            if (file.type === 'audio') {
+                videoPlayer.pause();
+                videoPlayer.style.display = 'none';
+                audioPlayer.src = file.url;
+                audioPlayer.style.display = 'block';
+                audioPlayer.play();
+                displayLyrics(file.name); // Display lyrics if it's an audio file
+            } else if (file.type === 'video') {
+                audioPlayer.pause();
+                audioPlayer.style.display = 'none';
+                videoPlayer.src = file.url;
+                videoPlayer.style.display = 'block';
+                videoPlayer.play();
+                lyrics.style.display = 'none'; // Hide lyrics for video files
             }
         }
 
-        // 处理媒体播放结束
+        // 显示歌词
+        function displayLyrics(fileName) {
+            var lyrics = document.getElementById('lyrics');
+            var mediaLyrics = document.getElementById('mediaLyrics');
+            var lyricsData = {
+                'Fool for you.mp3': 'Fool for you lyrics here...',
+                'Ferrari.mp3': 'Ferrari lyrics here...',
+                'Jar of love.mp3': 'Jar of love lyrics here...',
+                '离别开出花.mp3': '离别开出花 lyrics here...'
+            };
+            if (lyricsData[fileName]) {
+                mediaLyrics.textContent = lyricsData[fileName];
+                lyrics.style.display = 'block';
+            } else {
+                lyrics.style.display = 'none';
+            }
+        }
+
+        // 处理媒体文件结束
         function handleMediaEnd(type) {
-            if (type === "audio") {
-                document.getElementById("audioPlayer").pause();
-            } else if (type === "video") {
-                document.getElementById("videoPlayer").pause();
+            if (type === 'audio') {
+                document.getElementById('audioPlayer').style.display = 'none';
+            } else if (type === 'video') {
+                document.getElementById('videoPlayer').style.display = 'none';
+            }
+            document.getElementById('playingInfo').style.display = 'none';
+        }
+
+        // 初始化文件列表
+        function initializeMediaList() {
+            var audioList = document.getElementById('audioList');
+            var videoList = document.getElementById('videoList');
+
+            mediaFiles.forEach(function(file) {
+                var listItem = document.createElement('li');
+                listItem.textContent = file.name;
+                listItem.onclick = function() {
+                    playMedia(file);
+                };
+                if (file.type === 'audio') {
+                    audioList.appendChild(listItem);
+                } else if (file.type === 'video') {
+                    videoList.appendChild(listItem);
+                }
+            });
+        }
+
+        // 发送邮件函数
+        function sendEmail() {
+            var emailAddress = "admin@tech-bowen.com";
+            window.location.href = "mailto:" + emailAddress;
+        }
+
+        // 前往博客函数
+        function visitBlog() {
+            window.location.href = "https://tech-bowen.com";
+        }
+
+        // 获取IP信息
+        async function getIPInfo() {
+            try {
+                const response = await fetch('https://ipinfo.io/json');
+                const data = await response.json();
+                document.getElementById('ipAddress').textContent = data.ip;
+                document.getElementById('ipLocation').textContent = data.region + ', ' + data.country;
+            } catch (error) {
+                console.error('Error fetching IP information:', error);
             }
         }
 
-        // 发送邮件功能
-        function sendEmail() {
-            window.location.href = "mailto:admin@tech-bowen.com";
+        // 显示时间
+        function displayTime() {
+            var now = new Date();
+            var utcTime = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+            var utcPlus8Time = new Date(utcTime.getTime() + 8 * 3600000);
+            document.getElementById('utcTime').textContent = 'UTC时间：' + utcTime.toLocaleTimeString();
+            document.getElementById('localTime').textContent = '本地时间（UTC+8）：' + utcPlus8Time.toLocaleTimeString();
         }
 
-        // 前往博客按钮
-        function visitBlog() {
-            window.open("https://blog.tech-bowen.com", "_blank");
+        // 初始化
+        function initialize() {
+            initializeMediaList();
+            getIPInfo();
+            setInterval(displayTime, 1000);
         }
 
-        // 定时更新时间
-        setInterval(function () {
-            getCurrentTime();
-        }, 1000);
-
-        // 页面加载时获取当前时间和 IP 地址信息
-        document.addEventListener("DOMContentLoaded", function () {
-            getCurrentTime();
-            showIPInfo("正在维修IP检测服务", "正在维修IP检测服务");
-        });
-
+        // 页面加载完成时初始化
+        window.onload = initialize;
     </script>
 </body>
 </html>
